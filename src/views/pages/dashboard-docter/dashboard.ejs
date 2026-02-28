@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <% if (typeof baseHref === 'string' && baseHref) { %>
+    <base href="<%= baseHref %>">
+    <% } %>
+    <title>MedCore - Hospital Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --bg-nested: #f8fafc;
+            --fg: #0f172a;
+            --fg-muted: #64748b;
+            --accent: #4ade80;
+            --accent-soft: rgba(74, 222, 128, 0.12);
+            --border: #e2e8f0;
+            --card-shadow: 0 4px 24px rgba(15, 23, 42, 0.04);
+            --teal: #2dd4bf;
+            --navy: #1e3a5f;
+        }
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--fg);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .animate-slide-in-left {
+            animation: slideInLeft 0.5s ease-out forwards;
+        }
+
+        .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+        .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+        .stagger-5 { animation-delay: 0.5s; opacity: 0; }
+        .stagger-6 { animation-delay: 0.6s; opacity: 0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in-up,
+            .animate-slide-in-left {
+                animation: none;
+                opacity: 1;
+            }
+        }
+
+        /* Sidebar active indicator */
+        .nav-item {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+            transition: height 0.2s ease;
+        }
+
+        .nav-item.active::before,
+        .nav-item:hover::before {
+            height: 24px;
+        }
+
+        .nav-item.active {
+            background: var(--accent-soft);
+            color: #16a34a;
+        }
+
+        /* Card hover effects */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+        }
+
+        /* Button interactions */
+        .btn-primary {
+            background: var(--accent);
+            color: #15803d;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: #22c55e;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Focus states */
+        .focus-ring:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.3);
+        }
+
+        /* Status badge pulse */
+        .status-pulse {
+            position: relative;
+        }
+
+        .status-pulse::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            right: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: pulse-soft 2s ease-in-out infinite;
+        }
+
+        /* Chart bar animation */
+        .chart-bar {
+            transform-origin: bottom;
+            transition: all 0.3s ease;
+        }
+
+        .chart-bar:hover {
+            filter: brightness(1.1);
+        }
+
+        /* Table row hover */
+        .table-row {
+            transition: background 0.15s ease;
+        }
+
+        .table-row:hover {
+            background: var(--bg-nested);
+        }
+
+        /* Timeline dot */
+        .timeline-dot {
+            position: relative;
+        }
+
+        .timeline-dot::before {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 8px;
+            width: 10px;
+            height: 10px;
+            background: var(--bg);
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+        }
+
+        .timeline-dot.past::before {
+            background: var(--accent);
+        }
+
+        /* Search input */
+        .search-input::placeholder {
+            color: #94a3b8;
+        }
+
+        /* Notification badge */
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-20 lg:w-64 bg-slate-50 border-r border-slate-200 flex flex-col fixed h-full z-20 animate-slide-in-left">
+            <!-- Logo -->
+            <div class="p-4 lg:p-6 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-400 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <span class="hidden lg:block text-lg font-bold text-slate-900">MedCore</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-3 lg:p-4 space-y-1">
+                <a href="dashboard.html" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Dashboard">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Dashboard</span>
+                </a>
+                <a href="patiensts.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Patients">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Patients</span>
+                </a>
+                <a href="appointments.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Appointments">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Appointments</span>
+                </a>
+                <a href="schedules.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Schedule">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Schedule</span>
+                </a>
+                <a href="chats.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Messages">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Messages</span>
+                    <span class="hidden lg:flex ml-auto w-5 h-5 bg-green-400 text-green-900 text-xs font-bold rounded-full items-center justify-center">3</span>
+                </a>
+                <a href="reports.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Reports">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Reports</span>
+                </a>
+                <a href="settings.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Settings">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Settings</span>
+                </a>
+            </nav>
+
+            <!-- User Section -->
+            <div class="p-4 border-t border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center text-white font-bold text-sm">
+                        DR
+                    </div>
+                    <div class="hidden lg:block flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-900 truncate">Dr. Rebecca</p>
+                        <p class="text-xs text-slate-500 truncate">Cardiologist</p>
+                    </div>
+                    <form method="post" action="/logout" class="hidden lg:block">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="p-1.5 hover:bg-slate-100 rounded-lg transition-colors" aria-label="Logout">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-20 lg:ml-64">
+            <!-- Header -->
+            <header class="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-slate-200 z-10 animate-fade-in-up">
+                <div class="px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
+                    <div class="flex-1 max-w-md">
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="search" placeholder="Search patients, appointments, reports..." class="search-input w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100 transition-all">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="relative p-2.5 hover:bg-slate-100 rounded-xl transition-colors focus-ring" aria-label="Notifications">
+                            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            <span class="notification-badge"></span>
+                        </button>
+                        <form method="post" action="/logout">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <button type="submit" class="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 focus-ring">Logout</button>
+                        </form>
+                        <div class="h-6 w-px bg-slate-200"></div>
+                        <div class="flex items-center gap-3">
+                            <div class="text-right hidden sm:block">
+                                <p class="text-sm font-semibold text-slate-900">Dr. Rebecca Chen</p>
+                                <p class="text-xs text-slate-500">Senior Cardiologist</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-green-400/30">
+                                <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face" alt="Dr. Rebecca Chen" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="p-6 lg:p-8">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+                    <!-- Left Column -->
+                    <div class="xl:col-span-2 space-y-6 lg:space-y-8">
+                        <!-- Doctor Profile & Quick Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Doctor Profile Card -->
+                            <div class="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-6 border border-slate-200 shadow-sm card-hover animate-fade-in-up stagger-1">
+                                <div class="flex items-start gap-4">
+                                    <div class="relative">
+                                        <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=120&h=120&fit=crop&crop=face" alt="Dr. Rebecca Chen" class="w-16 h-16 rounded-2xl object-cover">
+                                        <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white flex items-center justify-center">
+                                            <svg class="w-3 h-3 text-green-900" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h2 class="text-lg font-bold text-slate-900">Dr. Rebecca Chen</h2>
+                                        <p class="text-sm text-slate-500">Senior Cardiologist</p>
+                                        <div class="mt-2 flex items-center gap-2">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                                                <span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                                                Available
+                                            </span>
+                                            <span class="text-xs text-slate-400">ID: DOC-2847</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-5 pt-5 border-t border-slate-100 grid grid-cols-3 gap-4 text-center">
+                                    <div>
+                                        <p class="text-2xl font-bold text-slate-900">12</p>
+                                        <p class="text-xs text-slate-500">Years Exp.</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-slate-900">4.9</p>
+                                        <p class="text-xs text-slate-500">Rating</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-slate-900">2.4k</p>
+                                        <p class="text-xs text-slate-500">Patients</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Today's Overview -->
+                            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm card-hover animate-fade-in-up stagger-2">
+                                <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Today's Overview</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-900">Total Patients</p>
+                                                <p class="text-xs text-slate-500">Today's visits</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-xl font-bold text-slate-900" id="patientCount">0</p>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-900">Appointments</p>
+                                                <p class="text-xs text-slate-500">Scheduled today</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-xl font-bold text-slate-900" id="appointmentCount">0</p>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-900">Surgeries</p>
+                                                <p class="text-xs text-slate-500">This week</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-xl font-bold text-slate-900" id="surgeryCount">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up stagger-3">
+                            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm card-hover">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="flex items-center text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                                        <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                                        </svg>
+                                        12%
+                                    </span>
+                                </div>
+                                <p class="text-2xl font-bold text-slate-900">$48.2k</p>
+                                <p class="text-xs text-slate-500 mt-1">Revenue this month</p>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm card-hover">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="flex items-center text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                                        <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                                        </svg>
+                                        8%
+                                    </span>
+                                </div>
+                                <p class="text-2xl font-bold text-slate-900">94%</p>
+                                <p class="text-xs text-slate-500 mt-1">Patient satisfaction</p>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm card-hover">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">32 beds</span>
+                                </div>
+                                <p class="text-2xl font-bold text-slate-900">24</p>
+                                <p class="text-xs text-slate-500 mt-1">Beds occupied</p>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm card-hover">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="flex items-center text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-1 rounded-full">Urgent</span>
+                                </div>
+                                <p class="text-2xl font-bold text-slate-900">3</p>
+                                <p class="text-xs text-slate-500 mt-1">Critical patients</p>
+                            </div>
+                        </div>
+
+                        <!-- Appointments Chart -->
+                        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm animate-fade-in-up stagger-4">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-900">Weekly Appointments</h3>
+                                    <p class="text-sm text-slate-500">Patient visits overview</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="chart-filter px-3 py-1.5 text-sm font-medium rounded-lg transition-colors bg-green-50 text-green-700" data-filter="week">Week</button>
+                                    <button class="chart-filter px-3 py-1.5 text-sm font-medium rounded-lg transition-colors text-slate-500 hover:bg-slate-100" data-filter="month">Month</button>
+                                    <button class="chart-filter px-3 py-1.5 text-sm font-medium rounded-lg transition-colors text-slate-500 hover:bg-slate-100" data-filter="year">Year</button>
+                                </div>
+                            </div>
+                            <div class="h-64 flex items-end gap-3" id="chartContainer">
+                                <!-- Chart bars will be rendered here -->
+                            </div>
+                            <div class="flex justify-between mt-4 text-xs text-slate-500" id="chartLabels">
+                                <!-- Labels will be rendered here -->
+                            </div>
+                        </div>
+
+                        <!-- Patient Table -->
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in-up stagger-5">
+                            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-900">Recent Patients</h3>
+                                    <p class="text-sm text-slate-500">Latest patient records and status</p>
+                                </div>
+                                <button class="btn-primary px-4 py-2 rounded-xl text-sm font-semibold focus-ring">
+                                    View All
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-slate-50">
+                                        <tr>
+                                            <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-6 py-3">Patient</th>
+                                            <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-6 py-3">Condition</th>
+                                            <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-6 py-3">Last Visit</th>
+                                            <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-6 py-3">Status</th>
+                                            <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-6 py-3">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="patientTable">
+                                        <!-- Patient rows will be rendered here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar -->
+                    <div class="space-y-6">
+                        <!-- Today's Schedule -->
+                        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm animate-fade-in-up stagger-2">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-bold text-slate-900">Today's Schedule</h3>
+                                <span class="text-xs font-medium text-slate-500">June 15, 2024</span>
+                            </div>
+                            <div class="relative pl-6 border-l-2 border-slate-100 space-y-6" id="scheduleTimeline">
+                                <!-- Timeline items will be rendered here -->
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-6 border border-green-100 animate-fade-in-up stagger-3">
+                            <h3 class="text-lg font-bold text-slate-900 mb-4">Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button class="w-full flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:border-green-300 hover:shadow-md transition-all group focus-ring">
+                                    <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                        </svg>
+                                    </div>
+                                    <span class="font-medium text-slate-700">New Appointment</span>
+                                </button>
+                                <button class="w-full flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:border-teal-300 hover:shadow-md transition-all group focus-ring">
+                                    <div class="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center group-hover:bg-teal-200 transition-colors">
+                                        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="font-medium text-slate-700">Add Patient</span>
+                                </button>
+                                <button class="w-full flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all group focus-ring">
+                                    <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="font-medium text-slate-700">Generate Report</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Department Stats -->
+                        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm animate-fade-in-up stagger-4">
+                            <h3 class="text-lg font-bold text-slate-900 mb-4">Department Overview</h3>
+                            <div class="space-y-4" id="departmentStats">
+                                <!-- Department stats will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Data
+        const chartData = {
+            week: [
+                { label: 'Mon', value: 24, color: '#4ade80' },
+                { label: 'Tue', value: 32, color: '#2dd4bf' },
+                { label: 'Wed', value: 28, color: '#4ade80' },
+                { label: 'Thu', value: 45, color: '#1e3a5f' },
+                { label: 'Fri', value: 38, color: '#2dd4bf' },
+                { label: 'Sat', value: 22, color: '#4ade80' },
+                { label: 'Sun', value: 18, color: '#94a3b8' }
+            ],
+            month: [
+                { label: 'W1', value: 120, color: '#4ade80' },
+                { label: 'W2', value: 145, color: '#2dd4bf' },
+                { label: 'W3', value: 132, color: '#1e3a5f' },
+                { label: 'W4', value: 158, color: '#4ade80' }
+            ],
+            year: [
+                { label: 'Q1', value: 480, color: '#4ade80' },
+                { label: 'Q2', value: 520, color: '#2dd4bf' },
+                { label: 'Q3', value: 490, color: '#1e3a5f' },
+                { label: 'Q4', value: 560, color: '#4ade80' }
+            ]
+        };
+
+        const patients = [
+            { name: 'Michael Roberts', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face', condition: 'Hypertension', lastVisit: 'Jun 14, 2024', status: 'stable' },
+            { name: 'Sarah Johnson', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face', condition: 'Cardiac Arrhythmia', lastVisit: 'Jun 13, 2024', status: 'monitoring' },
+            { name: 'James Wilson', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face', condition: 'Post-Surgery Recovery', lastVisit: 'Jun 15, 2024', status: 'critical' },
+            { name: 'Emily Davis', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face', condition: 'Routine Checkup', lastVisit: 'Jun 12, 2024', status: 'stable' },
+            { name: 'Robert Brown', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face', condition: 'Heart Disease', lastVisit: 'Jun 11, 2024', status: 'monitoring' }
+        ];
+
+        const schedule = [
+            { time: '09:00 AM', patient: 'Michael Roberts', type: 'checkup', status: 'past' },
+            { time: '10:30 AM', patient: 'Sarah Johnson', type: 'consultation', status: 'past' },
+            { time: '12:00 PM', patient: 'James Wilson', type: 'followup', status: 'current' },
+            { time: '02:00 PM', patient: 'Emily Davis', type: 'checkup', status: 'upcoming' },
+            { time: '03:30 PM', patient: 'Robert Brown', type: 'consultation', status: 'upcoming' }
+        ];
+
+        const departments = [
+            { name: 'Cardiology', patients: 45, capacity: 60, color: '#4ade80' },
+            { name: 'Neurology', patients: 32, capacity: 50, color: '#2dd4bf' },
+            { name: 'Orthopedics', patients: 28, capacity: 40, color: '#1e3a5f' },
+            { name: 'Pediatrics', patients: 52, capacity: 70, color: '#f59e0b' }
+        ];
+
+        // Render Chart
+        function renderChart(period) {
+            const container = document.getElementById('chartContainer');
+            const labelsContainer = document.getElementById('chartLabels');
+            const data = chartData[period];
+            const maxValue = Math.max(...data.map(d => d.value));
+
+            container.innerHTML = data.map((item, index) => `
+                <div class="flex-1 flex flex-col items-center gap-2">
+                    <div class="w-full flex items-end justify-center" style="height: 200px;">
+                        <div class="chart-bar w-full max-w-[40px] rounded-t-lg cursor-pointer" 
+                             style="height: ${(item.value / maxValue) * 100}%; background: ${item.color}; animation: fadeInUp 0.5s ease-out ${index * 0.1}s backwards;"
+                             data-value="${item.value}">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            labelsContainer.innerHTML = data.map(item => `
+                <span class="flex-1 text-center">${item.label}</span>
+            `).join('');
+        }
+
+        // Render Patient Table
+        function renderPatientTable() {
+            const tbody = document.getElementById('patientTable');
+            const statusStyles = {
+                stable: 'bg-green-50 text-green-700',
+                monitoring: 'bg-amber-50 text-amber-700',
+                critical: 'bg-rose-50 text-rose-700'
+            };
+
+            tbody.innerHTML = patients.map(patient => `
+                <tr class="table-row border-t border-slate-100">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <img src="${patient.avatar}" alt="${patient.name}" class="w-10 h-10 rounded-full object-cover">
+                            <span class="font-medium text-slate-900">${patient.name}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600">${patient.condition}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">${patient.lastVisit}</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${statusStyles[patient.status]}">
+                            ${patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <button class="p-2 hover:bg-slate-100 rounded-lg transition-colors focus-ring" aria-label="View patient details">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render Schedule Timeline
+        function renderSchedule() {
+            const container = document.getElementById('scheduleTimeline');
+            const typeIcons = {
+                checkup: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>`,
+                consultation: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>`,
+                followup: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>`
+            };
+
+            container.innerHTML = schedule.map(item => `
+                <div class="timeline-dot ${item.status === 'past' ? 'past' : ''} relative">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400">${item.time}</p>
+                            <p class="text-sm font-semibold text-slate-900 mt-1">${item.patient}</p>
+                            <div class="flex items-center gap-1.5 mt-1">
+                                <span class="text-slate-400">${typeIcons[item.type]}</span>
+                                <span class="text-xs text-slate-500 capitalize">${item.type}</span>
+                            </div>
+                        </div>
+                        ${item.status === 'current' ? `
+                            <button class="btn-primary px-3 py-1.5 rounded-lg text-xs font-semibold focus-ring">
+                                Join
+                            </button>
+                        ` : item.status === 'upcoming' ? `
+                            <span class="text-xs text-slate-400 px-2 py-1 bg-slate-100 rounded-lg">Upcoming</span>
+                        ` : `
+                            <span class="text-xs text-green-600 px-2 py-1 bg-green-50 rounded-lg">Completed</span>
+                        `}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Department Stats
+        function renderDepartments() {
+            const container = document.getElementById('departmentStats');
+            
+            container.innerHTML = departments.map(dept => `
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-slate-700">${dept.name}</span>
+                        <span class="text-xs text-slate-500">${dept.patients}/${dept.capacity}</span>
+                    </div>
+                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500" 
+                             style="width: ${(dept.patients / dept.capacity) * 100}%; background: ${dept.color};">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Animate counters
+        function animateCounter(elementId, target, duration = 1500) {
+            const element = document.getElementById(elementId);
+            const start = 0;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(start + (target - start) * easeOut);
+                
+                element.textContent = current;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+
+        // Chart filter interaction
+        document.querySelectorAll('.chart-filter').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.chart-filter').forEach(b => {
+                    b.classList.remove('bg-green-50', 'text-green-700');
+                    b.classList.add('text-slate-500');
+                });
+                this.classList.add('bg-green-50', 'text-green-700');
+                this.classList.remove('text-slate-500');
+                renderChart(this.dataset.filter);
+            });
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderChart('week');
+            renderPatientTable();
+            renderSchedule();
+            renderDepartments();
+
+            // Animate counters with stagger
+            setTimeout(() => animateCounter('patientCount', 24), 300);
+            setTimeout(() => animateCounter('appointmentCount', 8), 500);
+            setTimeout(() => animateCounter('surgeryCount', 5), 700);
+        });
+
+        // Intersection Observer for scroll reveal
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-fade-in-up').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

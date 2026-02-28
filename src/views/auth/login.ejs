@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+  <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-6">
+    <h1 class="text-2xl font-bold text-slate-900">Login HMS</h1>
+    <p class="text-sm text-slate-500 mt-1">Phase 2: Auth + RBAC</p>
+
+    <form action="/login" method="post" class="mt-6 space-y-4">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div>
+        <label class="text-sm text-slate-600">Email / Username</label>
+        <input name="identifier" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-xl" placeholder="admin@gmail.com" required>
+      </div>
+      <div>
+        <label class="text-sm text-slate-600">Password</label>
+        <input type="password" name="password" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-xl" placeholder="password" required>
+      </div>
+      <button class="w-full py-2.5 rounded-xl bg-green-400 text-green-900 font-semibold">Sign In</button>
+    </form>
+
+    <div class="mt-5 text-xs text-slate-500">
+      Demo akun: admin@gmail.com, docter@gmail.com, patient@gmail.com, pharmacist@gmail.com. Password: password
+    </div>
+  </div>
+
+  <% if (error) { %>
+  <script>
+    Swal.fire({ icon: 'error', title: 'Login Gagal', text: '<%= error %>' });
+  </script>
+  <% } %>
+</body>
+</html>

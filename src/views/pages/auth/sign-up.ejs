@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - NextGen Health</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg-light: #f8fafc;
+            --accent: #4ade80;
+            --accent-dark: #22c55e;
+        }
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+        .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in, .animate-float {
+                animation: none;
+                opacity: 1;
+            }
+        }
+
+        /* Form Styling */
+        .form-input {
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: #4ade80;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+        }
+
+        /* Custom Select Arrow */
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .custom-checkbox:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .custom-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 5px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Button */
+        .btn-primary {
+            background: var(--accent);
+            color: #15803d;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background: var(--accent-dark);
+            box-shadow: 0 10px 20px rgba(74, 222, 128, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Gradient Background for Left Panel */
+        .left-panel-bg {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+
+        /* Blob shapes */
+        .blob {
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen antialiased">
+
+    <div class="min-h-screen flex flex-col lg:flex-row">
+        
+        <!-- Left Side (Visual & Branding) -->
+        <div class="left-panel-bg hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center p-12">
+            <!-- Decorative Blobs -->
+            <div class="absolute top-20 left-20 w-72 h-72 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-float"></div>
+            <div class="absolute bottom-20 right-20 w-72 h-72 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-float" style="animation-delay: 2s;"></div>
+            
+            <!-- Content Container -->
+            <div class="relative z-10 text-center max-w-md animate-fade-in">
+                <!-- Logo -->
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white shadow-lg shadow-slate-200/50 mb-8">
+                    <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </div>
+
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">
+                    Join 5,000+ Healthcare Professionals
+                </h2>
+                <p class="text-slate-600 mb-8 leading-relaxed">
+                    Streamline your workflow, reduce administrative burden, and focus on what matters most — your patients.
+                </p>
+
+                <!-- Testimonial Card -->
+                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg text-left border border-slate-100">
+                    <div class="flex items-center gap-1 mb-3">
+                        <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    </div>
+                    <p class="text-sm text-slate-700 italic mb-4">"NextGen Health cut our patient check-in time by 60%. It's the best investment our clinic has made this year."</p>
+                    <div class="flex items-center gap-3">
+                        <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=face" alt="Dr. Sarah" class="w-10 h-10 rounded-full object-cover">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-900">Dr. Sarah Johnson</p>
+                            <p class="text-xs text-slate-500">Head of Cardiology</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side (Registration Form) -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white">
+            <div class="w-full max-w-md space-y-8">
+                
+                <!-- Mobile Logo (Visible only on small screens) -->
+                <div class="lg:hidden text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-50 mb-4">
+                        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-slate-900">NextGen Health</h1>
+                </div>
+
+                <!-- Header -->
+                <div class="animate-fade-in stagger-1">
+                    <h2 class="text-2xl font-bold text-slate-900">Create Your Account</h2>
+                    <p class="text-sm text-slate-500 mt-1">Start managing your patients more efficiently.</p>
+                </div>
+
+                <!-- Form -->
+                <form class="space-y-5" id="registrationForm">
+                    
+                    <!-- Row 1: Name & Email -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in stagger-2">
+                        <div>
+                            <label for="fullName" class="block text-xs font-semibold text-slate-500 mb-1.5">Full Name</label>
+                            <input type="text" id="fullName" name="fullName" placeholder="Dr. Jane Doe" class="form-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" required>
+                        </div>
+                        <div>
+                            <label for="email" class="block text-xs font-semibold text-slate-500 mb-1.5">Work Email</label>
+                            <input type="email" id="email" name="email" placeholder="jane@hospital.com" class="form-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" required>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Role & Medical ID -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in stagger-3">
+                        <div>
+                            <label for="role" class="block text-xs font-semibold text-slate-500 mb-1.5">Role</label>
+                            <div class="relative">
+                                <select id="role" name="role" class="custom-select form-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none appearance-none" required>
+                                    <option value="" disabled selected>Select Role</option>
+                                    <option value="doctor">Doctor</option>
+                                    <option value="nurse">Nurse</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="pharmacist">Pharmacist</option>
+                                    <option value="lab_tech">Lab Technician</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="medicalId" class="block text-xs font-semibold text-slate-500 mb-1.5">Medical ID / NIP</label>
+                            <input type="text" id="medicalId" name="medicalId" placeholder="e.g. 198507152010011001" class="form-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" required>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Password -->
+                    <div class="animate-fade-in stagger-4">
+                        <label for="password" class="block text-xs font-semibold text-slate-500 mb-1.5">Password</label>
+                        <div class="relative">
+                            <input type="password" id="password" name="password" placeholder="Min. 8 characters" class="form-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none pr-12" required minlength="8">
+                            <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 focus:outline-none" aria-label="Toggle password visibility">
+                                <svg class="w-5 h-5" id="eyeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                <svg class="w-5 h-5 hidden" id="eyeOffIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- Password Strength Indicator -->
+                        <div class="flex gap-1 mt-2">
+                            <div class="h-1 flex-1 rounded bg-slate-200" id="strength1"></div>
+                            <div class="h-1 flex-1 rounded bg-slate-200" id="strength2"></div>
+                            <div class="h-1 flex-1 rounded bg-slate-200" id="strength3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Terms -->
+                    <div class="animate-fade-in" style="animation-delay: 0.5s; opacity: 0;">
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" class="custom-checkbox mt-0.5" required>
+                            <span class="text-xs text-slate-600 leading-relaxed">
+                                I agree to the <a href="../landing-page.html#about" class="text-green-600 font-semibold hover:underline">Terms of Service</a> and <a href="../landing-page.html#about" class="text-green-600 font-semibold hover:underline">Privacy Policy</a>.
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-2">
+                        <button type="submit" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2">
+                            Create Account
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                </form>
+
+                <!-- Footer -->
+                <div class="text-center pt-4">
+                    <p class="text-sm text-slate-500">
+                        Already have an account? 
+                        <a href="sign-in.html" class="text-green-600 font-semibold hover:underline">Log In</a>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Password Visibility Toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            eyeIcon.classList.toggle('hidden');
+            eyeOffIcon.classList.toggle('hidden');
+        });
+
+        // Password Strength Indicator
+        passwordInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            const strength1 = document.getElementById('strength1');
+            const strength2 = document.getElementById('strength2');
+            const strength3 = document.getElementById('strength3');
+
+            // Reset
+            strength1.className = 'h-1 flex-1 rounded bg-slate-200';
+            strength2.className = 'h-1 flex-1 rounded bg-slate-200';
+            strength3.className = 'h-1 flex-1 rounded bg-slate-200';
+
+            let score = 0;
+            if (value.length >= 8) score++;
+            if (/[A-Z]/.test(value) && /[a-z]/.test(value)) score++;
+            if (/[0-9]/.test(value) || /[^A-Za-z0-9]/.test(value)) score++;
+
+            if (score > 0) {
+                strength1.className = 'h-1 flex-1 rounded bg-green-400';
+            }
+            if (score > 1) {
+                strength2.className = 'h-1 flex-1 rounded bg-green-400';
+            }
+            if (score > 2) {
+                strength3.className = 'h-1 flex-1 rounded bg-green-400';
+            }
+        });
+
+        // Form Submission (Demo)
+        document.getElementById('registrationForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Account created successfully! (This is a demo)');
+        });
+    </script>
+</body>
+</html>

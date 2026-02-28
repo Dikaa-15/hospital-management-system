@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Plans - NextGen Health</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-light: #f8fafc;
+            --accent: #4ade80;
+            --accent-dark: #22c55e;
+        }
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulseBadge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .animate-badge-pulse {
+            animation: pulseBadge 2s ease-in-out infinite;
+        }
+
+        .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+        .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in-up, .animate-badge-pulse {
+                animation: none;
+                opacity: 1;
+            }
+        }
+
+        /* Pricing Card Styles */
+        .pricing-card {
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .pricing-card.featured {
+            border: 2px solid #4ade80;
+            box-shadow: 0 25px 50px -12px rgba(74, 222, 128, 0.25);
+        }
+
+        /* Toggle Switch */
+        .billing-toggle-container {
+            background: rgba(248, 250, 252, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid #e2e8f0;
+        }
+
+        .toggle-indicator {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Checkmark */
+        .feature-check {
+            color: #4ade80;
+        }
+
+        /* Table */
+        .comparison-table th, .comparison-table td {
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .comparison-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        /* FAQ Accordion */
+        .faq-item {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .faq-item.open .faq-answer {
+            max-height: 500px;
+        }
+
+        .faq-item.open .faq-icon {
+            transform: rotate(45deg);
+        }
+
+        .faq-icon {
+            transition: transform 0.2s ease;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--accent);
+            color: #15803d;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background: var(--accent-dark);
+            box-shadow: 0 10px 20px rgba(74, 222, 128, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #0f172a;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            border-color: #4ade80;
+            color: #15803d;
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-900 antialiased">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="/" class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-400 flex items-center justify-center shadow-lg shadow-green-400/30">
+                        <svg class="w-6 h-6 text-green-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold text-slate-900">NextGen Health</span>
+                </a>
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="/#features" class="text-sm font-medium text-slate-600 hover:text-slate-900">Features</a>
+                    <a href="/pricing" class="text-sm font-semibold text-slate-900">Pricing</a>
+                    <a href="/#about" class="text-sm font-medium text-slate-600 hover:text-slate-900">About</a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="/login" class="text-sm font-semibold text-slate-700 hover:text-slate-900">Login</a>
+                    <a href="/templates/auth/sign-up.html" class="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">Start Free Trial</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-20">
+        <!-- Header Section -->
+        <section class="py-24 text-center">
+            <div class="max-w-4xl mx-auto px-6 animate-fade-in-up">
+                <span class="inline-block px-4 py-1.5 bg-green-50 text-green-700 text-xs font-bold uppercase tracking-widest rounded-full mb-6">Simple Pricing</span>
+                <h1 class="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4">
+                    Scalable Plans for Every<br>Healthcare Provider
+                </h1>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto mb-12">
+                    Transparent pricing with no hidden fees. Choose the plan that fits your facility size and scale as you grow.
+                </p>
+
+                <!-- Billing Toggle -->
+                <div class="inline-flex items-center p-1.5 billing-toggle-container rounded-2xl">
+                    <button class="billing-btn px-6 py-3 text-sm font-semibold rounded-xl relative z-10" data-period="monthly">
+                        Monthly
+                    </button>
+                    <button class="billing-btn px-6 py-3 text-sm font-semibold rounded-xl relative z-10 flex items-center gap-2" data-period="yearly">
+                        Yearly
+                        <span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">Save 20%</span>
+                    </button>
+                    <!-- Sliding Indicator -->
+                    <div class="toggle-indicator absolute top-1.5 left-1.5 w-[calc(50%-6px)] h-[calc(100%-12px)] bg-white rounded-xl shadow-md pointer-events-none" id="toggleIndicator"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Cards -->
+        <section class="pb-24">
+            <div class="max-w-7xl mx-auto px-6 lg:px-8">
+                <div class="grid md:grid-cols-3 gap-8 items-start">
+                    
+                    <!-- Starter Plan -->
+                    <div class="pricing-card bg-white rounded-3xl border border-slate-200 p-8 animate-fade-in-up stagger-1">
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold text-slate-900 mb-2">Starter</h3>
+                            <p class="text-sm text-slate-500">For small clinics and individual practices.</p>
+                        </div>
+                        
+                        <div class="mb-8">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-extrabold text-slate-900" id="price-starter">$99</span>
+                                <span class="text-slate-500">/ month</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Billed monthly</p>
+                        </div>
+
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 feature-check flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-600">Up to 500 Patient Records</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 feature-check flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-600">Appointment Scheduling</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 feature-check flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-600">Basic Reporting</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 feature-check flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-600">Email Support</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-slate-300 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                <span class="text-sm text-slate-400">Pharmacy Module</span>
+                            </li>
+                        </ul>
+
+                        <button class="w-full btn-secondary py-3.5 rounded-xl font-semibold">
+                            Start Free Trial
+                        </button>
+                    </div>
+
+                    <!-- Professional Plan (Featured) -->
+                    <div class="pricing-card featured bg-white rounded-3xl p-8 relative transform md:-translate-y-4 animate-fade-in-up stagger-2">
+                        <!-- Badge -->
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+                            <span class="animate-badge-pulse inline-block bg-green-400 text-green-900 text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-green-400/30">
+                                Most Popular
+                            </span>
+                        </div>
+
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold text-slate-900 mb-2">Professional</h3>
+                            <p class="text-sm text-slate-500">For mid-size hospitals and specialty centers.</p>
+                        </div>
+                        
+                        <div class="mb-8">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-5xl font-extrabold text-slate-900" id="price-pro">$299</span>
+                                <span class="text-slate-500">/ month</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Billed monthly</p>
+                        </div>
+
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 feature-check flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-600"><strong class="text-slate-900">Unlimited</strong> Patient Records</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 feature-check flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-600">Advanced Scheduling & Queue</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 feature-check flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-600">Pharmacy & Lab Integration</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 feature-check flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-600">Analytics Dashboard</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 feature-check flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-600">Priority Support</span>
+                            </li>
+                        </ul>
+
+                        <button class="w-full btn-primary py-4 rounded-xl font-bold shadow-lg shadow-green-400/30">
+                            Start Free Trial
+                        </button>
+                    </div>
+
+                    <!-- Enterprise Plan -->
+                    <div class="pricing-card bg-slate-900 rounded-3xl p-8 text-white animate-fade-in-up stagger-3">
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold mb-2">Enterprise</h3>
+                            <p class="text-sm text-slate-400">For hospital groups and large networks.</p>
+                        </div>
+                        
+                        <div class="mb-8">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-extrabold">Custom</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Tailored to your needs</p>
+                        </div>
+
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-300">Everything in Professional</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-300">Multi-Facility Management</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-300">Custom Integrations (BPJS/HIS)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-300">Dedicated Account Manager</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <svg class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span class="text-sm text-slate-300">24/7 On-site Support</span>
+                            </li>
+                        </ul>
+
+                        <button class="w-full bg-white text-slate-900 py-3.5 rounded-xl font-semibold hover:bg-slate-100 transition-colors">
+                            Contact Sales
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Comparison Table -->
+        <section class="py-24 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+                        Compare Features
+                    </h2>
+                    <p class="text-slate-600 max-w-2xl mx-auto">
+                        A detailed breakdown of modules and capabilities available in each plan.
+                    </p>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <table class="w-full comparison-table text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200">
+                                <th class="text-left py-5 px-6 font-semibold text-slate-900">Features</th>
+                                <th class="py-5 px-6 font-semibold text-slate-900 text-center">Starter</th>
+                                <th class="py-5 px-6 font-semibold text-slate-900 text-center bg-green-50/50">Professional</th>
+                                <th class="py-5 px-6 font-semibold text-slate-900 text-center">Enterprise</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="py-4 px-6 text-slate-700 font-medium">Patient Records</td>
+                                <td class="py-4 px-6 text-center text-slate-500">Up to 500</td>
+                                <td class="py-4 px-6 text-center bg-green-50/50 text-slate-700 font-medium">Unlimited</td>
+                                <td class="py-4 px-6 text-center text-slate-700 font-medium">Unlimited</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 text-slate-700 font-medium">Appointment Module</td>
+                                <td class="py-4 px-6 text-center"><svg class="w-5 h-5 feature-check mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
+                                <td class="py-4 px-6 text-center bg-green-50/50"><svg class="w-5 h-5 feature-check mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
+                                <td class="py-4 px-6 text-center"><svg class="w-5 h-5 feature-check mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 text-slate-700 font-medium">Pharmacy Management</td>
+                                <td class="py-4 px-6 text-center text-slate-300">—</td>
+                                <td class="py-4 px-6 text-center bg-green-50/50"><svg class="w-5 h-5 feature-check mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
+                                <td class="py-4 px-6 text-center"><svg class="w-5 h-5 feature-check mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 text-slate-700 font-medium">Radiology/Lab Integration</td>
+                                <td class="py-4 px-6 text-center text-slate-300">—</td>
+                                <td class="py-4 px-6 text-center bg-green-50/50"><svg class="w-5 h-5 feature-check mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
+                                <td class="py-4 px-6 text-center"><svg class="w-5 h-5 feature-check mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 text-slate-700 font-medium">Billing & Insurance</td>
+                                <td class="py-4 px-6 text-center text-slate-500">Basic</td>
+                                <td class="py-4 px-6 text-center bg-green-50/50 text-slate-700 font-medium">Advanced</td>
+                                <td class="py-4 px-6 text-center text-slate-700 font-medium">Custom</td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 text-slate-700 font-medium">BPJS Integration</td>
+                                <td class="py-4 px-6 text-center text-slate-300">—</td>
+                                <td class="py-4 px-6 text-center bg-green-50/50 text-slate-300">—</td>
+                                <td class="py-4 px-6 text-center"><svg class="w-5 h-5 feature-check mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 text-slate-700 font-medium">API Access</td>
+                                <td class="py-4 px-6 text-center text-slate-300">—</td>
+                                <td class="py-4 px-6 text-center bg-green-50/50"><svg class="w-5 h-5 feature-check mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
+                                <td class="py-4 px-6 text-center"><svg class="w-5 h-5 feature-check mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></td>
+                            </tr>
+                            <tr>
+                                <td class="py-4 px-6 text-slate-700 font-medium">Support</td>
+                                <td class="py-4 px-6 text-center text-slate-500">Email</td>
+                                <td class="py-4 px-6 text-center bg-green-50/50 text-slate-700 font-medium">Priority</td>
+                                <td class="py-4 px-6 text-center text-slate-700 font-medium">24/7 Dedicated</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="py-24">
+            <div class="max-w-3xl mx-auto px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+                        Frequently Asked Questions
+                    </h2>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- FAQ Item 1 -->
+                    <div class="faq-item border-slate-200 bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <button class="faq-btn w-full px-6 py-5 text-left flex items-center justify-between">
+                            <span class="font-semibold text-slate-900">Can I migrate data from my existing system?</span>
+                            <span class="faq-icon text-green-500 text-2xl font-light">+</span>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 leading-relaxed">
+                            <p class="pb-5">Yes, we offer complimentary data migration services for Professional and Enterprise plans. Our team will assist in transferring patient records, appointment history, and billing data securely from your legacy system to NextGen Health.</p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 2 -->
+                    <div class="faq-item border-slate-200 bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <button class="faq-btn w-full px-6 py-5 text-left flex items-center justify-between">
+                            <span class="font-semibold text-slate-900">Is the system compliant with HIPAA and local regulations?</span>
+                            <span class="faq-icon text-green-500 text-2xl font-light">+</span>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 leading-relaxed">
+                            <p class="pb-5">Absolutely. NextGen Health is fully HIPAA compliant. We also support compliance with Indonesian Ministry of Health standards and BPJS Kesehatan requirements for seamless integration with national healthcare systems.</p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 3 -->
+                    <div class="faq-item border-slate-200 bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <button class="faq-btn w-full px-6 py-5 text-left flex items-center justify-between">
+                            <span class="font-semibold text-slate-900">Does the price include training for staff?</span>
+                            <span class="faq-icon text-green-500 text-2xl font-light">+</span>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 leading-relaxed">
+                            <p class="pb-5">Yes. The Professional plan includes a standard onboarding session for up to 10 users. The Enterprise plan includes unlimited on-site training sessions and dedicated support for the first 3 months to ensure your team is fully proficient.</p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 4 -->
+                    <div class="faq-item border-slate-200 bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <button class="faq-btn w-full px-6 py-5 text-left flex items-center justify-between">
+                            <span class="font-semibold text-slate-900">Can I upgrade or downgrade my plan later?</span>
+                            <span class="faq-icon text-green-500 text-2xl font-light">+</span>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 leading-relaxed">
+                            <p class="pb-5">You can upgrade your plan at any time, and the new features will be available instantly. Downgrades take effect at the start of your next billing cycle. There are no penalties for changing plans.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trust Signals -->
+        <section class="py-16 bg-slate-50 border-t border-slate-200">
+            <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-8">Trusted by over 500 healthcare facilities</p>
+                <div class="flex flex-wrap justify-center items-center gap-12 opacity-40">
+                    <div class="flex items-center gap-2 grayscale hover:grayscale-0 transition-all">
+                        <div class="w-8 h-8 rounded-lg bg-slate-900"></div>
+                        <span class="font-bold text-slate-900">MedCentral</span>
+                    </div>
+                    <div class="flex items-center gap-2 grayscale hover:grayscale-0 transition-all">
+                        <div class="w-8 h-8 rounded-full bg-slate-900"></div>
+                        <span class="font-bold text-slate-900">HealthFirst</span>
+                    </div>
+                    <div class="flex items-center gap-2 grayscale hover:grayscale-0 transition-all">
+                        <div class="w-8 h-8 bg-slate-900" style="clip-path: polygon(50% 0%, 100% 100%, 0% 100%);"></div>
+                        <span class="font-bold text-slate-900">CarePoint</span>
+                    </div>
+                    <div class="flex items-center gap-2 grayscale hover:grayscale-0 transition-all">
+                        <div class="w-8 h-8 rounded-lg border-2 border-slate-900"></div>
+                        <span class="font-bold text-slate-900">Vitalis</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+            <p class="text-sm">© 2024 NextGen Health. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Billing Toggle Logic
+        const billingBtns = document.querySelectorAll('.billing-btn');
+        const toggleIndicator = document.getElementById('toggleIndicator');
+        const priceStarter = document.getElementById('price-starter');
+        const pricePro = document.getElementById('price-pro');
+        
+        const pricing = {
+            monthly: { starter: '$99', pro: '$299' },
+            yearly: { starter: '$79', pro: '$239' }
+        };
+
+        billingBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const period = btn.dataset.period;
+                
+                // Update active state
+                billingBtns.forEach(b => b.classList.remove('text-slate-900'));
+                btn.classList.add('text-slate-900');
+
+                // Move indicator
+                if (period === 'yearly') {
+                    toggleIndicator.style.transform = 'translateX(100%)';
+                } else {
+                    toggleIndicator.style.transform = 'translateX(0)';
+                }
+
+                // Update prices with fade effect
+                priceStarter.style.opacity = 0;
+                pricePro.style.opacity = 0;
+                
+                setTimeout(() => {
+                    priceStarter.textContent = pricing[period].starter;
+                    pricePro.textContent = pricing[period].pro;
+                    priceStarter.style.opacity = 1;
+                    pricePro.style.opacity = 1;
+                }, 150);
+            });
+        });
+
+        // FAQ Accordion Logic
+        const faqItems = document.querySelectorAll('.faq-item');
+
+        faqItems.forEach(item => {
+            const btn = item.querySelector('.faq-btn');
+            btn.addEventListener('click', () => {
+                const isOpen = item.classList.contains('open');
+                
+                // Close all others
+                faqItems.forEach(i => i.classList.remove('open'));
+                
+                // Toggle current
+                if (!isOpen) {
+                    item.classList.add('open');
+                }
+            });
+        });
+
+        // Set initial active state for toggle text
+        document.querySelector('.billing-btn[data-period="monthly"]').classList.add('text-slate-900');
+    </script>
+</body>
+</html>

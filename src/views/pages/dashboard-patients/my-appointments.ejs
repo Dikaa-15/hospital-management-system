@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Appointments - NextGen Health</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg-light: #f8fafc;
+            --accent: #4ade80;
+            --accent-dark: #22c55e;
+        }
+
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+        /* Animations */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .slide-in-right { animation: slideInRight 0.3s ease-out forwards; }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        .scale-in { animation: scaleIn 0.3s ease-out forwards; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .slide-in-right, .fade-in, .scale-in { animation: none; opacity: 1; transform: none; }
+        }
+
+        /* Components */
+        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 20px -5px rgba(0, 0, 0, 0.04); }
+        
+        .filter-chip {
+            transition: all 0.2s ease;
+        }
+        .filter-chip:hover {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #15803d;
+        }
+        .filter-chip.active {
+            background: #dcfce7;
+            border-color: #4ade80;
+            color: #15803d;
+            font-weight: 600;
+        }
+
+        /* Modal & Panel */
+        .overlay {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .time-slot {
+            transition: all 0.15s ease;
+        }
+        .time-slot:hover:not(.disabled) {
+            border-color: #86efac;
+            background: #f0fdf4;
+        }
+        .time-slot.selected {
+            background: #4ade80;
+            border-color: #4ade80;
+            color: white;
+            font-weight: 600;
+        }
+        .time-slot.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <div class="flex min-h-screen">
+        
+        <!-- Sidebar -->
+        <aside class="w-20 lg:w-64 bg-white border-r border-slate-100 flex flex-col fixed h-full z-30">
+            <div class="p-4 lg:p-6 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-400 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    </div>
+                    <span class="hidden lg:block text-lg font-bold text-slate-900">Patient Portal</span>
+                </div>
+            </div>
+            <nav class="flex-1 p-3 lg:p-4 space-y-1">
+                <a href="prescriptions.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span class="hidden lg:block">Home</span>
+                </a>
+                <a href="my-appointments.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-green-50 text-green-700 font-medium" aria-current="page">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span class="hidden lg:block">Appointments</span>
+                </a>
+                <a href="medical-records.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span class="hidden lg:block">Records</span>
+                </a>
+                <a href="billing.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span class="hidden lg:block">Billing</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-slate-100">
+                <div class="flex items-center gap-3">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face" alt="User" class="w-10 h-10 rounded-full object-cover">
+                    <div class="hidden lg:block flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-900 truncate">Jane Doe</p>
+                        <p class="text-xs text-slate-500">Patient ID: PX-2847</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-20 lg:ml-64">
+            
+            <!-- Header -->
+            <header class="sticky top-0 bg-slate-50/90 backdrop-blur-lg z-20 border-b border-slate-100">
+                <div class="px-6 lg:px-8 py-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-900">My Appointments</h1>
+                            <p class="text-sm text-slate-500 mt-1">Manage your bookings and history.</p>
+                        </div>
+                        <button id="openBookingBtn" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-400 text-green-900 font-semibold rounded-xl hover:bg-green-500 transition-colors shadow-sm hover:shadow-md">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                            Book New Appointment
+                        </button>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="mt-6 flex gap-2 border-b border-slate-200 -mb-px">
+                        <button class="tab-btn px-4 py-3 text-sm font-semibold text-green-600 border-b-2 border-green-400" data-tab="upcoming">Upcoming</button>
+                        <button class="tab-btn px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" data-tab="history">Past History</button>
+                        <button class="tab-btn px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700" data-tab="cancelled">Cancelled</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-6 lg:p-8 space-y-6">
+                
+                <!-- Upcoming Appointments -->
+                <div id="tab-content-upcoming" class="space-y-4">
+                    
+                    <!-- Appointment Card 1 -->
+                    <div class="bg-white rounded-3xl border border-slate-100 p-6 card-shadow flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="flex items-center gap-4">
+                            <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face" alt="Doctor" class="w-16 h-16 rounded-2xl object-cover">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-bold text-slate-900">Dr. Sarah Johnson</h3>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">Confirmed</span>
+                                </div>
+                                <p class="text-sm text-slate-500">Dermatologist</p>
+                                <div class="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                                    <span class="flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        Oct 24, 2024
+                                    </span>
+                                    <span class="flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        10:30 AM
+                                    </span>
+                                    <span class="hidden sm:flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        Room 302
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 pl-20 md:pl-0">
+                            <button class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50">Reschedule</button>
+                            <button class="px-4 py-2 rounded-xl text-sm font-semibold text-green-600 hover:bg-green-50">View Instructions</button>
+                        </div>
+                    </div>
+
+                    <!-- Appointment Card 2 -->
+                    <div class="bg-white rounded-3xl border border-slate-100 p-6 card-shadow flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="flex items-center gap-4">
+                            <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&crop=face" alt="Doctor" class="w-16 h-16 rounded-2xl object-cover">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-bold text-slate-900">Dr. Michael Chen</h3>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-600">Pending</span>
+                                </div>
+                                <p class="text-sm text-slate-500">General Practitioner</p>
+                                <div class="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                                    <span class="flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        Oct 28, 2024
+                                    </span>
+                                    <span class="flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        02:00 PM
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 pl-20 md:pl-0">
+                            <button class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50">Reschedule</button>
+                            <button class="px-4 py-2 rounded-xl text-sm font-semibold text-green-600 hover:bg-green-50">View Instructions</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Past History (Hidden by default) -->
+                <div id="tab-content-history" class="hidden space-y-4">
+                     <!-- Appointment Card -->
+                     <div class="bg-white rounded-3xl border border-slate-100 p-6 card-shadow flex flex-col md:flex-row md:items-center justify-between gap-6 opacity-75">
+                        <div class="flex items-center gap-4">
+                            <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face" alt="Doctor" class="w-16 h-16 rounded-2xl object-cover">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="font-bold text-slate-900">Dr. Sarah Johnson</h3>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">Completed</span>
+                                </div>
+                                <p class="text-sm text-slate-500">Dermatologist</p>
+                                <div class="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                                    <span class="flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        Sep 10, 2024
+                                    </span>
+                                    <span class="flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        09:00 AM
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 pl-20 md:pl-0">
+                            <button class="px-4 py-2 rounded-xl text-sm font-semibold text-green-600 hover:bg-green-50">View Summary</button>
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- Cancelled (Hidden by default) -->
+                 <div id="tab-content-cancelled" class="hidden text-center py-16">
+                    <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900">No Cancelled Appointments</h3>
+                    <p class="text-sm text-slate-500 mt-1">You're all set!</p>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Booking Panel Overlay -->
+    <div id="bookingOverlay" class="hidden fixed inset-0 z-40 overlay" aria-hidden="true"></div>
+
+    <!-- Booking Side Panel -->
+    <div id="bookingPanel" class="hidden fixed inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl z-50 overflow-y-auto">
+        <div class="flex flex-col h-full">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-6 border-b border-slate-100">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Book Appointment</h2>
+                    <p class="text-sm text-slate-500 mt-0.5">Find and schedule your visit.</p>
+                </div>
+                <button id="closePanelBtn" class="p-2 rounded-lg hover:bg-slate-100">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 p-6 space-y-6 overflow-y-auto" id="panelContent">
+                
+                <!-- Step 1: Search -->
+                <div id="step1">
+                    <div class="relative mb-4">
+                        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text" placeholder="Search doctor, specialty, or symptoms..." class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-400 text-sm">
+                    </div>
+                    
+                    <!-- Quick Filters -->
+                    <div class="flex flex-wrap gap-2 mb-8">
+                        <button class="filter-chip active px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-600">General</button>
+                        <button class="filter-chip px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-600">Cardiologist</button>
+                        <button class="filter-chip px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-600">Pediatrician</button>
+                        <button class="filter-chip px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-600">Dermatologist</button>
+                    </div>
+
+                    <!-- Doctor List -->
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Available Doctors</h3>
+                    <div class="space-y-3" id="doctorList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Step 2: Schedule (Hidden by default) -->
+                <div id="step2" class="hidden">
+                    <button id="backBtn" class="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 mb-6">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        Back to Search
+                    </button>
+
+                    <div class="flex items-center gap-4 mb-6 p-4 bg-slate-50 rounded-xl">
+                        <img id="selectedDoctorImg" src="" class="w-12 h-12 rounded-xl object-cover">
+                        <div>
+                            <h3 id="selectedDoctorName" class="font-bold text-slate-900"></h3>
+                            <p id="selectedDoctorSpec" class="text-sm text-slate-500"></p>
+                        </div>
+                    </div>
+
+                    <!-- Calendar Placeholder -->
+                    <div class="bg-slate-50 rounded-xl p-4 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-semibold text-slate-900">October 2024</h4>
+                            <div class="flex gap-1">
+                                <button class="p-1 hover:bg-slate-200 rounded-md"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+                                <button class="p-1 hover:bg-slate-200 rounded-md"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-slate-400 mb-2">
+                            <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                            <!-- Placeholder days -->
+                            <div class="py-2 text-slate-300">29</div><div class="py-2 text-slate-300">30</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">1</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">2</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">3</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">4</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">5</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">6</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">7</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">8</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">9</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">10</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">11</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">12</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">13</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">14</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">15</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">16</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">17</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">18</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">19</div>
+                            <div class="py-2 bg-green-100 text-green-700 font-bold rounded-lg">20</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">21</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">22</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">23</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">24</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">25</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">26</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">27</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">28</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">29</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">30</div>
+                            <div class="py-2 hover:bg-white rounded-lg cursor-pointer">31</div>
+                        </div>
+                    </div>
+
+                    <!-- Time Slots -->
+                    <h4 class="text-sm font-semibold text-slate-700 mb-3">Available Slots</h4>
+                    <div class="grid grid-cols-3 gap-3 mb-6" id="timeSlots">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Summary -->
+                    <div id="bookingSummary" class="hidden bg-green-50 p-4 rounded-xl border border-green-200">
+                         <div class="flex justify-between items-center text-sm font-semibold text-green-800 mb-2">
+                            <span>Consultation Fee</span>
+                            <span>$50.00</span>
+                        </div>
+                        <p class="text-xs text-green-700">Payment collected at clinic.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-6 border-t border-slate-100 bg-slate-50">
+                <button id="confirmBookingBtn" class="w-full py-3 bg-green-400 text-green-900 font-semibold rounded-xl hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Confirm Booking
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const doctors = [
+            { id: 1, name: 'Dr. Sarah Johnson', spec: 'Dermatologist', img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=face', available: true },
+            { id: 2, name: 'Dr. Michael Chen', spec: 'Cardiologist', img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=face', available: true },
+            { id: 3, name: 'Dr. Emily White', spec: 'Pediatrician', img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=face', available: true },
+        ];
+        
+        const slots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00'];
+        const bookedSlots = ['10:00', '14:00'];
+
+        // Elements
+        const openBtn = document.getElementById('openBookingBtn');
+        const closeBtn = document.getElementById('closePanelBtn');
+        const overlay = document.getElementById('bookingOverlay');
+        const panel = document.getElementById('bookingPanel');
+        const doctorList = document.getElementById('doctorList');
+        const timeSlots = document.getElementById('timeSlots');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const backBtn = document.getElementById('backBtn');
+        const confirmBtn = document.getElementById('confirmBookingBtn');
+        const summary = document.getElementById('bookingSummary');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+
+        // State
+        let selectedDoctor = null;
+        let selectedSlot = null;
+
+        // Panel Open/Close
+        openBtn.addEventListener('click', () => {
+            overlay.classList.remove('hidden');
+            panel.classList.remove('hidden');
+            panel.classList.add('slide-in-right');
+            renderDoctors();
+            step1.classList.remove('hidden');
+            step2.classList.add('hidden');
+        });
+
+        function closePanel() {
+            panel.classList.add('hidden');
+            overlay.classList.add('hidden');
+            selectedDoctor = null;
+            selectedSlot = null;
+        }
+
+        closeBtn.addEventListener('click', closePanel);
+        overlay.addEventListener('click', closePanel);
+
+        // Tabs
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => {
+                    b.classList.remove('text-green-600', 'border-b-2', 'border-green-400');
+                    b.classList.add('text-slate-500');
+                });
+                btn.classList.add('text-green-600', 'border-b-2', 'border-green-400');
+                btn.classList.remove('text-slate-500');
+
+                // Toggle content (simplified for demo)
+                document.querySelectorAll('[id^="tab-content-"]').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`tab-content-${btn.dataset.tab}`).classList.remove('hidden');
+            });
+        });
+
+        // Render Doctors
+        function renderDoctors() {
+            doctorList.innerHTML = doctors.map(d => `
+                <button onclick="selectDoctor(${d.id})" class="w-full flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-100 hover:border-green-200 hover:shadow-md transition-all text-left">
+                    <img src="${d.img}" class="w-12 h-12 rounded-xl object-cover">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-slate-900">${d.name}</h4>
+                        <p class="text-sm text-slate-500">${d.spec}</p>
+                    </div>
+                    <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            `).join('');
+        }
+
+        // Select Doctor
+        window.selectDoctor = (id) => {
+            selectedDoctor = doctors.find(d => d.id === id);
+            document.getElementById('selectedDoctorImg').src = selectedDoctor.img;
+            document.getElementById('selectedDoctorName').textContent = selectedDoctor.name;
+            document.getElementById('selectedDoctorSpec').textContent = selectedDoctor.spec;
+            
+            step1.classList.add('hidden');
+            step2.classList.remove('hidden');
+            renderSlots();
+        };
+
+        // Back Button
+        backBtn.addEventListener('click', () => {
+            step2.classList.add('hidden');
+            step1.classList.remove('hidden');
+            selectedDoctor = null;
+            selectedSlot = null;
+            confirmBtn.disabled = true;
+            summary.classList.add('hidden');
+        });
+
+        // Render Slots
+        function renderSlots() {
+            timeSlots.innerHTML = slots.map(s => {
+                const isBooked = bookedSlots.includes(s);
+                return `
+                    <button onclick="selectSlot('${s}')" class="time-slot py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 ${isBooked ? 'disabled' : ''}" ${isBooked ? 'disabled' : ''}>
+                        ${s}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // Select Slot
+        window.selectSlot = (slot) => {
+            selectedSlot = slot;
+            document.querySelectorAll('.time-slot').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.textContent.trim() === slot) {
+                    btn.classList.add('selected');
+                }
+            });
+            confirmBtn.disabled = false;
+            summary.classList.remove('hidden');
+        };
+
+        // Confirm
+        confirmBtn.addEventListener('click', () => {
+            alert(`Booking confirmed with ${selectedDoctor.name} at ${selectedSlot}`);
+            closePanel();
+        });
+
+    </script>
+</body>
+</html>

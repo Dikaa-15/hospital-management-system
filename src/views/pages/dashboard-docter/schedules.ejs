@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - MedCore HMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --fg: #0f172a;
+            --fg-muted: #64748b;
+            --accent: #4ade80;
+            --accent-soft: rgba(74, 222, 128, 0.12);
+            --border: #e2e8f0;
+            --teal: #2dd4bf;
+            --navy: #1e3a5f;
+        }
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--fg);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-line {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.2s ease-out forwards;
+        }
+
+        .stagger-1 { animation-delay: 0.05s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.15s; opacity: 0; }
+        .stagger-4 { animation-delay: 0.2s; opacity: 0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in-up,
+            .animate-slide-in {
+                animation: none;
+                opacity: 1;
+            }
+        }
+
+        .nav-item {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+            transition: height 0.2s ease;
+        }
+
+        .nav-item.active::before,
+        .nav-item:hover::before {
+            height: 24px;
+        }
+
+        .nav-item.active {
+            background: var(--accent-soft);
+            color: #16a34a;
+        }
+
+        .time-grid {
+            position: relative;
+        }
+
+        .time-slot {
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .time-slot:hover {
+            background: rgba(74, 222, 128, 0.03);
+        }
+
+        .schedule-block {
+            transition: all 0.2s ease;
+            cursor: grab;
+        }
+
+        .schedule-block:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .schedule-block:active {
+            cursor: grabbing;
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            z-index: 50;
+        }
+
+        .schedule-block.dragging {
+            opacity: 0.7;
+            transform: scale(1.05);
+        }
+
+        .current-time-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ef4444;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        .current-time-line::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+            animation: pulse-line 2s ease-in-out infinite;
+        }
+
+        .day-column {
+            position: relative;
+        }
+
+        .day-column.today {
+            background: rgba(74, 222, 128, 0.02);
+        }
+
+        .day-column.today .day-header {
+            background: var(--accent);
+            color: #15803d;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #15803d;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: #22c55e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--fg);
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .focus-ring:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.3);
+        }
+
+        .view-toggle {
+            position: relative;
+        }
+
+        .view-toggle-btn {
+            position: relative;
+            z-index: 1;
+            transition: color 0.2s ease;
+        }
+
+        .view-toggle-btn.active {
+            color: #15803d;
+        }
+
+        .view-toggle-indicator {
+            position: absolute;
+            height: calc(100% - 8px);
+            top: 4px;
+            background: var(--accent);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .block-practice {
+            background: rgba(74, 222, 128, 0.12);
+            border-left: 4px solid #4ade80;
+        }
+
+        .block-surgery {
+            background: rgba(239, 68, 68, 0.08);
+            border-left: 4px solid #f87171;
+        }
+
+        .block-vip {
+            background: rgba(251, 191, 36, 0.12);
+            border-left: 4px solid #fbbf24;
+        }
+
+        .block-meeting {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #60a5fa;
+        }
+
+        .block-break {
+            background: rgba(148, 163, 184, 0.1);
+            border-left: 4px solid #94a3b8;
+        }
+
+        .drop-zone {
+            transition: all 0.2s ease;
+        }
+
+        .drop-zone.drag-over {
+            background: rgba(74, 222, 128, 0.1);
+            border: 2px dashed #4ade80;
+        }
+
+        .mini-calendar-day {
+            transition: all 0.15s ease;
+        }
+
+        .mini-calendar-day:hover {
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .mini-calendar-day.today {
+            background: var(--accent);
+            color: #15803d;
+            font-weight: 700;
+        }
+
+        .mini-calendar-day.has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: #4ade80;
+            border-radius: 50%;
+        }
+
+        .stat-card {
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-20 lg:w-64 bg-white border-r border-slate-200 flex flex-col fixed h-full z-30">
+            <!-- Logo -->
+            <div class="p-4 lg:p-6 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-400 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-green-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <span class="hidden lg:block text-lg font-bold text-slate-900">MedCore</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-3 lg:p-4 space-y-1">
+                <a href="dashboard.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Dashboard">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Dashboard</span>
+                </a>
+                <a href="patiensts.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Patients">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Patients</span>
+                </a>
+                <a href="appointments.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Appointments">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Appointments</span>
+                </a>
+                <a href="schedules.html" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Schedule" aria-current="page">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Schedule</span>
+                </a>
+                <a href="chats.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Messages">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Messages</span>
+                </a>
+                <a href="reports.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Reports">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Reports</span>
+                </a>
+                <a href="settings.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Settings">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Settings</span>
+                </a>
+            </nav>
+
+            <!-- User Section -->
+            <div class="p-4 border-t border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        DR
+                    </div>
+                    <div class="hidden lg:block flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-900 truncate">Dr. Rebecca</p>
+                        <p class="text-xs text-slate-500 truncate">Cardiologist</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-20 lg:ml-64">
+            <!-- Header -->
+            <header class="sticky top-0 bg-white/95 backdrop-blur-lg border-b border-slate-200 z-20">
+                <div class="px-6 lg:px-8 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div>
+                                <h1 class="text-2xl font-bold text-slate-900">Schedule</h1>
+                                <p class="text-sm text-slate-500 mt-0.5">Manage your time and shifts</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button class="btn-secondary px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 focus-ring">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                                Sync Calendar
+                            </button>
+                            <button class="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 focus-ring" id="addScheduleBtn">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                                Add Schedule
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex">
+                <!-- Calendar Content -->
+                <div class="flex-1 p-6 lg:p-8">
+                    <!-- Calendar Controls -->
+                    <div class="flex items-center justify-between mb-6 animate-fade-in-up">
+                        <div class="flex items-center gap-2">
+                            <button class="btn-ghost p-2 rounded-lg focus-ring" id="prevWeek" aria-label="Previous week">
+                                <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <button class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium focus-ring" id="todayBtn">
+                                Today
+                            </button>
+                            <button class="btn-ghost p-2 rounded-lg focus-ring" id="nextWeek" aria-label="Next week">
+                                <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                            <h2 class="text-lg font-bold text-slate-900 ml-2" id="weekRange">June 10 - 16, 2024</h2>
+                        </div>
+                        <div class="view-toggle flex items-center bg-slate-100 rounded-xl p-1">
+                            <div class="view-toggle-indicator" id="toggleIndicator"></div>
+                            <button class="view-toggle-btn px-4 py-1.5 text-sm font-medium rounded-lg focus-ring" data-view="day">Day</button>
+                            <button class="view-toggle-btn active px-4 py-1.5 text-sm font-medium rounded-lg focus-ring" data-view="week">Week</button>
+                            <button class="view-toggle-btn px-4 py-1.5 text-sm font-medium rounded-lg focus-ring" data-view="month">Month</button>
+                        </div>
+                    </div>
+
+                    <!-- Time Grid Calendar -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in-up stagger-1">
+                        <!-- Day Headers -->
+                        <div class="grid grid-cols-8 border-b border-slate-200 bg-slate-50">
+                            <div class="p-3 text-center">
+                                <span class="text-xs font-medium text-slate-400">GMT+7</span>
+                            </div>
+                            <div id="dayHeaders"></div>
+                        </div>
+
+                        <!-- Time Grid -->
+                        <div class="relative overflow-y-auto" style="height: calc(100vh - 280px);" id="timeGridContainer">
+                            <div class="grid grid-cols-8 min-h-full" id="timeGrid">
+                                <!-- Time labels and slots will be rendered here -->
+                            </div>
+                            <!-- Current Time Line -->
+                            <div class="current-time-line" id="currentTimeLine"></div>
+                        </div>
+                    </div>
+
+                    <!-- Block Type Legend -->
+                    <div class="flex items-center gap-6 mt-4 text-xs animate-fade-in-up stagger-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-sm block-practice"></div>
+                            <span class="text-slate-600">Regular Practice</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-sm block-surgery"></div>
+                            <span class="text-slate-600">Surgery</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-sm block-vip"></div>
+                            <span class="text-slate-600">VIP Visit</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-sm block-meeting"></div>
+                            <span class="text-slate-600">Meeting</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-sm block-break"></div>
+                            <span class="text-slate-600">Break</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar -->
+                <aside class="hidden xl:block w-80 p-6 border-l border-slate-200 bg-white">
+                    <!-- Current Time Display -->
+                    <div class="bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-5 mb-6 border border-green-100 animate-fade-in-up">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-slate-500 uppercase tracking-wide">Current Time</span>
+                            <div class="flex items-center gap-1">
+                                <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                                <span class="text-xs text-green-600 font-medium">Live</span>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold text-slate-900" id="liveTime">10:45</p>
+                        <p class="text-sm text-slate-500 mt-1" id="liveDate">Saturday, June 15, 2024</p>
+                    </div>
+
+                    <!-- Upcoming Duty -->
+                    <div class="mb-6 animate-fade-in-up stagger-1">
+                        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Upcoming Duty</h3>
+                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-slate-900">ICU Ward</p>
+                                    <p class="text-sm text-slate-500">Floor 3, Room 305</p>
+                                    <p class="text-xs text-green-600 font-medium mt-1">2:00 PM - 6:00 PM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Today's Stats -->
+                    <div class="mb-6 animate-fade-in-up stagger-2">
+                        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Today's Overview</h3>
+                        <div class="space-y-3">
+                            <div class="stat-card flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm text-slate-600">Working Hours</span>
+                                </div>
+                                <span class="font-bold text-slate-900">8.5h</span>
+                            </div>
+                            <div class="stat-card flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm text-slate-600">Patients</span>
+                                </div>
+                                <span class="font-bold text-slate-900">12</span>
+                            </div>
+                            <div class="stat-card flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm text-slate-600">Appointments</span>
+                                </div>
+                                <span class="font-bold text-slate-900">8</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="mb-6 animate-fade-in-up stagger-3">
+                        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Quick Actions</h3>
+                        <div class="space-y-2">
+                            <button class="w-full flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-green-300 hover:bg-green-50 transition-all group">
+                                <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm group-hover:bg-green-100 transition-colors">
+                                    <svg class="w-4 h-4 text-slate-400 group-hover:text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium text-slate-700">Request Leave</span>
+                            </button>
+                            <button class="w-full flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all group">
+                                <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm group-hover:bg-blue-100 transition-colors">
+                                    <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium text-slate-700">Swap Shift</span>
+                            </button>
+                            <button class="w-full flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-purple-300 hover:bg-purple-50 transition-all group">
+                                <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm group-hover:bg-purple-100 transition-colors">
+                                    <svg class="w-4 h-4 text-slate-400 group-hover:text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium text-slate-700">Set Reminder</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mini Calendar -->
+                    <div class="animate-fade-in-up stagger-4">
+                        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">June 2024</h3>
+                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                            <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                                <span class="text-xs text-slate-400 font-medium">S</span>
+                                <span class="text-xs text-slate-400 font-medium">M</span>
+                                <span class="text-xs text-slate-400 font-medium">T</span>
+                                <span class="text-xs text-slate-400 font-medium">W</span>
+                                <span class="text-xs text-slate-400 font-medium">T</span>
+                                <span class="text-xs text-slate-400 font-medium">F</span>
+                                <span class="text-xs text-slate-400 font-medium">S</span>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1" id="miniCalendar">
+                                <!-- Mini calendar days will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <!-- Schedule Detail Modal -->
+    <div id="scheduleModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" id="modalOverlay"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-slide-in">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-slate-900" id="modalTitle">Schedule Details</h3>
+                <button class="p-2 hover:bg-slate-100 rounded-lg transition-colors" id="closeModal" aria-label="Close modal">
+                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="modalContent">
+                <!-- Content will be populated dynamically -->
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button class="flex-1 btn-secondary px-4 py-2.5 rounded-xl text-sm font-semibold focus-ring">Delete</button>
+                <button class="flex-1 btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold focus-ring" id="editShiftBtn">Edit Shift</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Schedule Data
+        const scheduleBlocks = [
+            // Monday
+            { id: 1, day: 0, startHour: 8, endHour: 12, type: 'practice', title: 'Outpatient Clinic', location: 'Room 201', patientCount: 8 },
+            { id: 2, day: 0, startHour: 14, endHour: 17, type: 'practice', title: 'Cardiology Ward Rounds', location: 'Floor 4', patientCount: 12 },
+            
+            // Tuesday
+            { id: 3, day: 1, startHour: 9, endHour: 11, type: 'surgery', title: 'CABG Surgery', location: 'OR 3', patientName: 'James Wilson', duration: '3h' },
+            { id: 4, day: 1, startHour: 14, endHour: 16, type: 'vip', title: 'VIP Consultation', location: 'Private Suite', patientName: 'Confidential' },
+            { id: 5, day: 1, startHour: 16, endHour: 17, type: 'meeting', title: 'Department Meeting', location: 'Conference Room A' },
+            
+            // Wednesday
+            { id: 6, day: 2, startHour: 8, endHour: 12, type: 'practice', title: 'ECG Lab', location: 'Room 105', patientCount: 15 },
+            { id: 7, day: 2, startHour: 13, endHour: 14, type: 'break', title: 'Lunch Break', location: '' },
+            { id: 8, day: 2, startHour: 14, endHour: 18, type: 'practice', title: 'Follow-up Clinic', location: 'Room 201', patientCount: 10 },
+            
+            // Thursday
+            { id: 9, day: 3, startHour: 9, endHour: 12, type: 'surgery', title: 'Angioplasty', location: 'Cath Lab', patientName: 'Robert Brown', duration: '2h' },
+            { id: 10, day: 3, startHour: 14, endHour: 17, type: 'practice', title: 'Consultations', location: 'Room 302', patientCount: 6 },
+            
+            // Friday
+            { id: 11, day: 4, startHour: 8, endHour: 13, type: 'practice', title: 'General Clinic', location: 'Room 201', patientCount: 12 },
+            { id: 12, day: 4, startHour: 15, endHour: 16, type: 'meeting', title: 'Case Review', location: 'Conference Room B' },
+            
+            // Saturday (Today)
+            { id: 13, day: 5, startHour: 9, endHour: 12, type: 'practice', title: 'Morning Rounds', location: 'ICU Ward, Floor 3', patientCount: 8 },
+            { id: 14, day: 5, startHour: 14, endHour: 18, type: 'practice', title: 'ICU Duty', location: 'ICU Ward, Floor 3', patientCount: 6 },
+            
+            // Sunday
+            { id: 15, day: 6, startHour: 10, endHour: 12, type: 'vip', title: 'Emergency Consultation', location: 'VIP Wing', patientName: 'Scheduled' },
+        ];
+
+        // State
+        let currentView = 'week';
+        let currentWeekStart = new Date();
+        let selectedBlock = null;
+        const HOUR_HEIGHT = 60;
+        const START_HOUR = 7;
+        const END_HOUR = 20;
+
+        // DOM Elements
+        const timeGrid = document.getElementById('timeGrid');
+        const dayHeaders = document.getElementById('dayHeaders');
+        const currentTimeLine = document.getElementById('currentTimeLine');
+        const timeGridContainer = document.getElementById('timeGridContainer');
+        const scheduleModal = document.getElementById('scheduleModal');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalContent = document.getElementById('modalContent');
+        const modalTitle = document.getElementById('modalTitle');
+        const toggleIndicator = document.getElementById('toggleIndicator');
+
+        // Initialize week
+        currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + 1); // Start from Monday
+
+        // Helper Functions
+        function formatHour(hour) {
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+            return `${displayHour}:00 ${period}`;
+        }
+
+        function getBlockClass(type) {
+            const classes = {
+                'practice': 'block-practice',
+                'surgery': 'block-surgery',
+                'vip': 'block-vip',
+                'meeting': 'block-meeting',
+                'break': 'block-break'
+            };
+            return classes[type] || 'block-practice';
+        }
+
+        function getBlockIcon(type) {
+            const icons = {
+                'practice': '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>',
+                'surgery': '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>',
+                'vip': '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>',
+                'meeting': '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
+                'break': '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+            };
+            return icons[type] || icons['practice'];
+        }
+
+        // Render Day Headers
+        function renderDayHeaders() {
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            dayHeaders.innerHTML = days.map((day, index) => {
+                const date = new Date(currentWeekStart);
+                date.setDate(currentWeekStart.getDate() + index);
+                const isToday = date.toDateString() === today.toDateString();
+                
+                return `
+                    <div class="p-3 text-center border-l border-slate-200 ${isToday ? 'bg-green-50' : ''}">
+                        <p class="text-xs font-medium ${isToday ? 'text-green-600' : 'text-slate-400'}">${day}</p>
+                        <p class="text-lg font-bold ${isToday ? 'text-green-600' : 'text-slate-900'} mt-0.5">${date.getDate()}</p>
+                    </div>
+                `;
+            }).join('');
+            
+            // Update week range display
+            const endDate = new Date(currentWeekStart);
+            endDate.setDate(currentWeekStart.getDate() + 6);
+            const startMonth = currentWeekStart.toLocaleDateString('en-US', { month: 'short' });
+            const endMonth = endDate.toLocaleDateString('en-US', { month: 'short' });
+            document.getElementById('weekRange').textContent = 
+                `${startMonth} ${currentWeekStart.getDate()} - ${endMonth !== startMonth ? endMonth + ' ' : ''}${endDate.getDate()}, ${endDate.getFullYear()}`;
+        }
+
+        // Render Time Grid
+        function renderTimeGrid() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let html = '';
+            
+            // Time labels column
+            html += '<div class="border-r border-slate-100">';
+            for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
+                html += `
+                    <div class="h-[60px] px-2 flex items-start justify-end pt-1">
+                        <span class="text-xs text-slate-400 font-medium">${formatHour(hour)}</span>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            
+            // Day columns
+            for (let day = 0; day < 7; day++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(currentWeekStart.getDate() + day);
+                const isToday = date.toDateString() === today.toDateString();
+                
+                html += `<div class="day-column relative border-r border-slate-100 ${isToday ? 'today' : ''}">`;
+                
+                // Time slots
+                for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
+                    html += `
+                        <div class="time-slot h-[60px] drop-zone" data-day="${day}" data-hour="${hour}"></div>
+                    `;
+                }
+                
+                // Schedule blocks for this day
+                const dayBlocks = scheduleBlocks.filter(b => b.day === day);
+                dayBlocks.forEach(block => {
+                    const top = (block.startHour - START_HOUR) * HOUR_HEIGHT;
+                    const height = (block.endHour - block.startHour) * HOUR_HEIGHT;
+                    const isLarge = height > 60;
+                    
+                    html += `
+                        <div class="schedule-block absolute left-1 right-1 rounded-lg p-2 shadow-sm ${getBlockClass(block.type)}" 
+                             style="top: ${top}px; height: ${height}px;"
+                             data-id="${block.id}">
+                            <div class="flex items-start gap-1.5">
+                                <span class="flex-shrink-0 mt-0.5 opacity-60">${getBlockIcon(block.type)}</span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-semibold text-slate-900 truncate">${block.title}</p>
+                                    ${isLarge ? `
+                                        <p class="text-xs text-slate-500 mt-0.5 truncate">${block.location}</p>
+                                        <p class="text-xs text-slate-400 mt-0.5">${formatHour(block.startHour)} - ${formatHour(block.endHour)}</p>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            }
+            
+            timeGrid.innerHTML = html;
+            
+            // Add click handlers to blocks
+            document.querySelectorAll('.schedule-block').forEach(block => {
+                block.addEventListener('click', () => openBlockModal(parseInt(block.dataset.id)));
+            });
+            
+            // Update current time line
+            updateCurrentTimeLine();
+        }
+
+        // Update current time line position
+        function updateCurrentTimeLine() {
+            const now = new Date();
+            const today = now.getDay();
+            const dayIndex = today === 0 ? 6 : today - 1; // Convert to Monday-based index
+            
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            
+            if (hour >= START_HOUR && hour <= END_HOUR) {
+                const top = (hour - START_HOUR) * HOUR_HEIGHT + (minute / 60) * HOUR_HEIGHT;
+                currentTimeLine.style.top = `${top}px`;
+                
+                // Position within today's column (column index is dayIndex + 1 because of time label column)
+                const columnWidth = timeGridContainer.offsetWidth / 8;
+                currentTimeLine.style.left = `${(dayIndex + 1) * columnWidth}px`;
+                currentTimeLine.style.right = `${(7 - dayIndex - 1) * columnWidth}px`;
+                currentTimeLine.style.display = 'block';
+            } else {
+                currentTimeLine.style.display = 'none';
+            }
+        }
+
+        // Open block modal
+        function openBlockModal(blockId) {
+            selectedBlock = scheduleBlocks.find(b => b.id === blockId);
+            if (!selectedBlock) return;
+            
+            modalTitle.textContent = selectedBlock.title;
+            modalContent.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center ${getBlockClass(selectedBlock.type)}">
+                            ${getBlockIcon(selectedBlock.type)}
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-900 capitalize">${selectedBlock.type}</p>
+                            <p class="text-xs text-slate-500">${selectedBlock.duration || `${selectedBlock.endHour - selectedBlock.startHour} hours`}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1">Time</p>
+                            <p class="text-sm font-semibold text-slate-900">${formatHour(selectedBlock.startHour)} - ${formatHour(selectedBlock.endHour)}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1">Location</p>
+                            <p class="text-sm font-semibold text-slate-900">${selectedBlock.location || '-'}</p>
+                        </div>
+                    </div>
+                    ${selectedBlock.patientCount ? `
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1">Patients Scheduled</p>
+                            <p class="text-sm font-semibold text-slate-900">${selectedBlock.patientCount} patients</p>
+                        </div>
+                    ` : ''}
+                    ${selectedBlock.patientName ? `
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1">Patient</p>
+                            <p class="text-sm font-semibold text-slate-900">${selectedBlock.patientName}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            scheduleModal.classList.remove('hidden');
+        }
+
+        // Close modal
+        function closeModal() {
+            scheduleModal.classList.add('hidden');
+            selectedBlock = null;
+        }
+
+        // Render mini calendar
+        function renderMiniCalendar() {
+            const container = document.getElementById('miniCalendar');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            
+            let html = '';
+            
+            // Empty cells for days before the first day of the month
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                html += '<div class="w-7 h-7"></div>';
+            }
+            
+            // Days of the month
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(today.getFullYear(), today.getMonth(), day);
+                const isToday = date.toDateString() === today.toDateString();
+                const hasEvent = scheduleBlocks.some(b => {
+                    const blockDate = new Date(currentWeekStart);
+                    blockDate.setDate(currentWeekStart.getDate() + b.day);
+                    return blockDate.toDateString() === date.toDateString();
+                });
+                
+                html += `
+                    <button class="mini-calendar-day relative w-7 h-7 text-xs font-medium rounded-lg ${isToday ? 'today' : ''} ${hasEvent && !isToday ? 'has-event' : ''}">
+                        ${day}
+                    </button>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // Update view toggle indicator
+        function updateViewToggle() {
+            const activeBtn = document.querySelector(`.view-toggle-btn[data-view="${currentView}"]`);
+            if (activeBtn) {
+                const indicator = document.getElementById('toggleIndicator');
+                indicator.style.width = `${activeBtn.offsetWidth}px`;
+                indicator.style.left = `${activeBtn.offsetLeft}px`;
+            }
+        }
+
+        // Update live time
+        function updateLiveTime() {
+            const now = new Date();
+            document.getElementById('liveTime').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+            document.getElementById('liveDate').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        }
+
+        // Event Listeners
+        document.getElementById('prevWeek').addEventListener('click', () => {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            renderDayHeaders();
+            renderTimeGrid();
+        });
+
+        document.getElementById('nextWeek').addEventListener('click', () => {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            renderDayHeaders();
+            renderTimeGrid();
+        });
+
+        document.getElementById('todayBtn').addEventListener('click', () => {
+            const today = new Date();
+            currentWeekStart = new Date(today);
+            currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + 1);
+            renderDayHeaders();
+            renderTimeGrid();
+        });
+
+        document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentView = btn.dataset.view;
+                updateViewToggle();
+            });
+        });
+
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', closeModal);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !scheduleModal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDayHeaders();
+            renderTimeGrid();
+            renderMiniCalendar();
+            updateViewToggle();
+            updateLiveTime();
+            
+            // Update time every minute
+            setInterval(() => {
+                updateCurrentTimeLine();
+                updateLiveTime();
+            }, 60000);
+            
+            // Update toggle indicator on resize
+            window.addEventListener('resize', updateViewToggle);
+        });
+    </script>
+</body>
+</html>

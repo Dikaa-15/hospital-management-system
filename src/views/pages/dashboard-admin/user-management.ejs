@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { inter: ['Inter', 'sans-serif'] },
+                    colors: { brand: '#4ADE80' }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+    <div class="min-h-screen flex">
+        <aside class="w-20 lg:w-64 bg-white border-r border-slate-100 flex flex-col fixed h-full z-30">
+            <div class="p-4 lg:p-6 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-400 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-green-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    </div>
+                    <span class="hidden lg:block text-lg font-bold text-slate-900">Admin Panel</span>
+                </div>
+            </div>
+            <nav class="flex-1 p-3 lg:p-4 space-y-1 text-sm">
+                <a href="dashboard.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span class="hidden lg:block">System Overview</span></a>
+                <a href="user-management.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-green-50 text-green-700 font-semibold" aria-current="page"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="hidden lg:block">User Management</span></a>
+                <a href="patient-directory.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.121 17.804A4 4 0 019 16h6a4 4 0 013.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="hidden lg:block">Patient Directory</span></a>
+                <a href="inventory-management.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h18M3 12h18M3 17h18"/></svg><span class="hidden lg:block">Inventory & Pharmacy</span></a>
+                <a href="financial-management.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 12v-2"/></svg><span class="hidden lg:block">Financial & Billing</span></a>
+                <a href="schedule-ward-management.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="hidden lg:block">Schedule & Wards</span></a>
+                <a href="system-settings-security.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg><span class="hidden lg:block">System Settings</span></a>
+            </nav>
+            <div class="p-4 border-t border-slate-100 text-xs text-slate-500 hidden lg:block">Secure admin access • Audit ready</div>
+        </aside>
+
+        <div class="flex-1 ml-20 lg:ml-64">
+            <header class="bg-white border-b border-slate-100 sticky top-0 z-20">
+                <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase tracking-widest">Staff & Doctor Directory</div>
+                        <div class="text-lg font-bold">User Management</div>
+                    </div>
+                    <a href="#create-staff" class="px-4 py-2 rounded-xl bg-green-400 text-green-900 text-sm font-semibold">+ Add New Staff</a>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 xl:grid-cols-[1.7fr_1fr] gap-8">
+                <section class="space-y-6">
+                    <% if (flash) { %>
+                        <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"><%= flash %></div>
+                    <% } %>
+                    <% if (error) { %>
+                        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><%= error %></div>
+                    <% } %>
+
+                    <form method="get" action="/templates/dashboard-admin/user-management.html" class="bg-white border border-slate-100 rounded-xl p-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input name="q" value="<%= filters.q %>" class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none" placeholder="Search by name, ID, or email...">
+                                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35M16 10a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <select name="role" class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm">
+                                <option value="">All Roles</option>
+                                <% roles.forEach((role) => { %>
+                                    <option value="<%= role.role_name %>" <%= filters.role === role.role_name ? 'selected' : '' %>><%= role.role_name %></option>
+                                <% }) %>
+                            </select>
+                            <select name="status" class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm">
+                                <option value="">All Status</option>
+                                <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Active</option>
+                                <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                            </select>
+                            <button class="px-3 py-2 rounded-xl bg-slate-900 text-white text-sm">Apply</button>
+                        </div>
+                    </form>
+
+                    <div class="bg-white border border-slate-100 rounded-xl shadow-sm overflow-hidden">
+                        <div class="bg-slate-50 px-5 py-3 text-xs uppercase tracking-widest text-slate-500">Main Users Table (<%= users.length %>)</div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="text-xs text-slate-500 uppercase tracking-widest">
+                                    <tr class="text-left">
+                                        <th class="py-3 px-5">Staff Member</th>
+                                        <th class="py-3">Role & Dept</th>
+                                        <th class="py-3">Contact</th>
+                                        <th class="py-3">Status</th>
+                                        <th class="py-3 pr-5">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (!users.length) { %>
+                                        <tr class="border-t border-slate-100"><td colspan="5" class="px-5 py-8 text-center text-slate-500">No users found.</td></tr>
+                                    <% } %>
+                                    <% users.forEach((staff) => { %>
+                                        <tr class="border-t border-slate-100 hover:bg-slate-50 <%= selectedUser && selectedUser.id === staff.id ? 'bg-green-50/50' : '' %>">
+                                            <td class="py-4 px-5">
+                                                <div>
+                                                    <div class="font-semibold text-slate-900"><%= [staff.title_prefix, staff.first_name, staff.last_name, staff.title_suffix].filter(Boolean).join(' ') %></div>
+                                                    <div class="text-xs text-slate-500">ID <%= staff.employee_id %></div>
+                                                </div>
+                                            </td>
+                                            <td class="py-4">
+                                                <div class="font-semibold capitalize <%= staff.role_name === 'doctor' ? 'text-slate-900' : 'text-slate-600' %>"><%= staff.role_name || '-' %></div>
+                                                <div class="text-xs text-slate-500"><%= staff.spec_name || 'General' %></div>
+                                            </td>
+                                            <td class="py-4 text-slate-600"><%= staff.email || staff.username || '-' %></td>
+                                            <td class="py-4">
+                                                <% if (staff.is_active) { %>
+                                                    <span class="px-3 py-1 rounded-full bg-green-400 text-white text-xs font-semibold">Active</span>
+                                                <% } else { %>
+                                                    <span class="px-3 py-1 rounded-full bg-slate-200 text-slate-600 text-xs font-semibold">Inactive</span>
+                                                <% } %>
+                                            </td>
+                                            <td class="py-4 pr-5">
+                                                <div class="flex items-center gap-2">
+                                                    <a href="/templates/dashboard-admin/user-management.html?edit=<%= staff.id %>" class="text-green-600 font-semibold text-xs">Edit</a>
+                                                    <form method="post" action="/admin/users/<%= staff.id %>/status">
+                                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                        <input type="hidden" name="next_status" value="<%= staff.is_active ? 'inactive' : 'active' %>">
+                                                        <button class="text-xs font-semibold <%= staff.is_active ? 'text-red-600' : 'text-green-600' %>"><%= staff.is_active ? 'Deactivate' : 'Activate' %></button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="space-y-6">
+                    <div id="create-staff" class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm">
+                        <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-widest">Add New Staff</h2>
+                        <form method="post" action="/admin/users" class="mt-4 space-y-3 text-sm">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input name="first_name" required placeholder="First name" class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                <input name="last_name" placeholder="Last name" class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                            </div>
+                            <input name="email" type="email" placeholder="Email" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                            <input name="username" placeholder="Username (optional)" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                            <input name="employee_id" placeholder="Employee ID (optional)" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="grid grid-cols-2 gap-2">
+                                <select name="role_id" required class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                    <option value="">Select role</option>
+                                    <% roles.forEach((role) => { %><option value="<%= role.id %>"><%= role.role_name %></option><% }) %>
+                                </select>
+                                <select name="specialization_id" class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                    <option value="">Department</option>
+                                    <% specializations.forEach((spec) => { %><option value="<%= spec.id %>"><%= spec.spec_name %></option><% }) %>
+                                </select>
+                            </div>
+                            <input name="phone_number" placeholder="Phone number" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                            <input name="password" type="password" placeholder="Password (default: password)" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                            <label class="flex items-center gap-2"><input type="checkbox" name="is_active" value="1" checked> <span>Active</span></label>
+                            <button class="w-full px-4 py-2 rounded-xl bg-green-400 text-green-900 font-semibold">Create User</button>
+                        </form>
+                    </div>
+
+                    <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm">
+                        <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-widest">Quick Edit</h2>
+                        <% if (!selectedUser) { %>
+                            <p class="mt-4 text-sm text-slate-500">Select a user from table to edit.</p>
+                        <% } else { %>
+                            <div class="mt-3 text-sm">
+                                <div class="font-semibold text-slate-900"><%= [selectedUser.title_prefix, selectedUser.first_name, selectedUser.last_name, selectedUser.title_suffix].filter(Boolean).join(' ') %></div>
+                                <div class="text-xs text-slate-500">ID <%= selectedUser.employee_id %></div>
+                            </div>
+                            <form method="post" action="/admin/users/<%= selectedUser.id %>/update" class="mt-4 space-y-3 text-sm">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input name="first_name" required value="<%= selectedUser.first_name %>" class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                    <input name="last_name" value="<%= selectedUser.last_name || '' %>" class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input name="title_prefix" value="<%= selectedUser.title_prefix || '' %>" placeholder="Prefix" class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                    <input name="title_suffix" value="<%= selectedUser.title_suffix || '' %>" placeholder="Suffix" class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                </div>
+                                <input name="email" type="email" value="<%= selectedUser.email || '' %>" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                <input name="phone_number" value="<%= selectedUser.phone_number || '' %>" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                <select name="role_id" required class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                    <% roles.forEach((role) => { %>
+                                        <option value="<%= role.id %>" <%= selectedUser.role_id === role.id ? 'selected' : '' %>><%= role.role_name %></option>
+                                    <% }) %>
+                                </select>
+                                <select name="specialization_id" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                    <option value="">Department</option>
+                                    <% specializations.forEach((spec) => { %>
+                                        <option value="<%= spec.id %>" <%= selectedUser.specialization_id === spec.id ? 'selected' : '' %>><%= spec.spec_name %></option>
+                                    <% }) %>
+                                </select>
+                                <input name="password" type="password" placeholder="New password (optional)" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                <label class="flex items-center gap-2"><input type="checkbox" name="is_active" value="1" <%= selectedUser.is_active ? 'checked' : '' %>> <span>Active</span></label>
+                                <button class="w-full px-4 py-2 rounded-xl bg-green-400 text-green-900 font-semibold">Save Changes</button>
+                            </form>
+                        <% } %>
+                    </div>
+                </aside>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

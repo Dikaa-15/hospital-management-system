@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing & Payments - Patient Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: '#4ADE80',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { --brand: #4ADE80; }
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .focus-ring { outline: 2px solid transparent; outline-offset: 2px; }
+        .focus-ring:focus-visible { outline: 2px solid #86efac; outline-offset: 2px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+    <div class="flex min-h-screen">
+
+        <!-- Sidebar -->
+        <aside class="w-20 lg:w-64 bg-white border-r border-slate-100 flex flex-col fixed h-full z-30">
+            <div class="p-4 lg:p-6 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-400 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <span class="hidden lg:block text-lg font-bold text-slate-900">Patient Portal</span>
+                </div>
+            </div>
+            <nav class="flex-1 p-3 lg:p-4 space-y-1">
+                <a href="overview.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span class="hidden lg:block">Home</span>
+                </a>
+                <a href="my-appointments.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span class="hidden lg:block">Appointments</span>
+                </a>
+                <a href="medical-records.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span class="hidden lg:block">Medical Records</span>
+                </a>
+                <a href="prescriptions.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v6m-3-3h6m7 3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="hidden lg:block">Prescriptions</span>
+                </a>
+                <a href="billing.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-green-50 text-green-700 font-medium" aria-current="page">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span class="hidden lg:block">Billing</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-slate-100">
+                <div class="flex items-center gap-3">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face" alt="User" class="w-10 h-10 rounded-full object-cover">
+                    <div class="hidden lg:block flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-900 truncate">Jane Doe</p>
+                        <p class="text-xs text-slate-500">Patient ID: PX-2847</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-20 lg:ml-64">
+            <header class="sticky top-0 bg-slate-50/90 backdrop-blur-lg z-20 border-b border-slate-100">
+                <div class="flex items-center justify-between px-6 lg:px-8 py-4">
+                    <div>
+                        <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">Billing & Payments</h1>
+                        <p class="text-sm text-slate-500 mt-1">Transparent payments with insurance coverage summary.</p>
+                    </div>
+                    <button class="px-4 py-2 rounded-3xl bg-green-400 text-green-900 text-sm font-semibold hover:bg-green-300 focus-ring">
+                        Pay Now
+                    </button>
+                </div>
+            </header>
+
+            <div class="px-6 lg:px-8 py-8 grid grid-cols-1 xl:grid-cols-[1.6fr_1fr] gap-8">
+
+                <!-- Main Column -->
+                <section class="space-y-6">
+                    <!-- Overview Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+                            <div class="text-xs text-slate-500 uppercase tracking-widest">Total Outstanding</div>
+                            <div class="text-2xl font-bold text-slate-900 mt-3">Rp 1.850.000</div>
+                            <p class="text-xs text-slate-500 mt-2">Includes pending invoices (2)</p>
+                            <button class="mt-4 px-4 py-2 rounded-2xl bg-green-400 text-green-900 text-xs font-semibold">Pay All</button>
+                        </div>
+                        <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+                            <div class="text-xs text-slate-500 uppercase tracking-widest">Insurance Status</div>
+                            <div class="flex items-center gap-2 mt-3">
+                                <span class="w-2.5 h-2.5 rounded-full bg-green-400"></span>
+                                <span class="text-lg font-bold text-slate-900">Active</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2">BPJS / Prudential</p>
+                            <div class="mt-4 inline-flex items-center gap-2 text-xs text-green-700 bg-green-50 px-3 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                                Savings this month: Rp 620.000
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+                            <div class="text-xs text-slate-500 uppercase tracking-widest">Deposit Balance</div>
+                            <div class="text-2xl font-bold text-slate-900 mt-3">Rp 450.000</div>
+                            <p class="text-xs text-slate-500 mt-2">Auto-applied on next invoice</p>
+                            <div class="mt-4 flex items-center gap-2 text-xs text-slate-500">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6l4 2"/>
+                                </svg>
+                                Updated Feb 20, 2026
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment History -->
+                    <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-bold text-slate-900">Payment History</h2>
+                            <button class="text-xs font-semibold text-slate-500 hover:text-slate-700">Export</button>
+                        </div>
+                        <div class="mt-5 overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="text-xs text-slate-500 uppercase tracking-widest">
+                                    <tr class="text-left">
+                                        <th class="py-3">Invoice ID</th>
+                                        <th class="py-3">Date</th>
+                                        <th class="py-3">Service</th>
+                                        <th class="py-3">Amount</th>
+                                        <th class="py-3">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-slate-700">
+                                    <tr class="border-t border-slate-100">
+                                        <td class="py-4 font-semibold text-slate-900">INV-23981</td>
+                                        <td class="py-4">Feb 18, 2026</td>
+                                        <td class="py-4">General Consultation</td>
+                                        <td class="py-4 font-bold text-slate-900">Rp 750.000</td>
+                                        <td class="py-4">
+                                            <span class="px-3 py-1 rounded-full bg-green-400 text-white text-xs font-semibold">Paid</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-t border-slate-100">
+                                        <td class="py-4 font-semibold text-slate-900">INV-23872</td>
+                                        <td class="py-4">Feb 10, 2026</td>
+                                        <td class="py-4">Lab Test</td>
+                                        <td class="py-4 font-bold text-slate-900">Rp 450.000</td>
+                                        <td class="py-4">
+                                            <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">Pending</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-t border-slate-100">
+                                        <td class="py-4 font-semibold text-slate-900">INV-23715</td>
+                                        <td class="py-4">Jan 30, 2026</td>
+                                        <td class="py-4">Pharmacy Pickup</td>
+                                        <td class="py-4 font-bold text-slate-900">Rp 650.000</td>
+                                        <td class="py-4">
+                                            <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold">Overdue</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Right Panel -->
+                <aside class="space-y-6">
+                    <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-900">Invoice Details</h2>
+                                <p class="text-xs text-slate-500 mt-1">INV-23872 • Feb 10, 2026</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 space-y-3 text-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Doctor Consultation</span>
+                                <span class="font-bold text-slate-900">Rp 250.000</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Lab Fees</span>
+                                <span class="font-bold text-slate-900">Rp 150.000</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Medication</span>
+                                <span class="font-bold text-slate-900">Rp 50.000</span>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                                <span class="text-slate-500">Administration</span>
+                                <span class="font-bold text-slate-900">Rp 25.000</span>
+                            </div>
+                            <div class="flex items-center justify-between text-base font-bold text-slate-900 pt-2">
+                                <span>Total</span>
+                                <span>Rp 475.000</span>
+                            </div>
+                        </div>
+
+                        <button class="mt-5 w-full px-4 py-2 rounded-2xl bg-green-400 text-green-900 text-sm font-semibold flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 text-green-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"/>
+                            </svg>
+                            Download Receipt (PDF)
+                        </button>
+                    </div>
+
+                    <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-widest">Payment Methods</h3>
+                            <div class="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h18M3 12h18M3 17h18"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 space-y-3 text-sm">
+                            <label class="flex items-center justify-between p-3 rounded-2xl border border-slate-100 hover:border-green-200">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h18M3 12h18M3 17h18"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-slate-900">Virtual Account</p>
+                                        <p class="text-xs text-slate-500">Instant bank transfer</p>
+                                    </div>
+                                </div>
+                                <input type="radio" name="payment" class="accent-green-400">
+                            </label>
+                            <label class="flex items-center justify-between p-3 rounded-2xl border border-slate-100 hover:border-green-200">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-slate-900">E-Wallet (QRIS)</p>
+                                        <p class="text-xs text-slate-500">Scan and pay</p>
+                                    </div>
+                                </div>
+                                <input type="radio" name="payment" class="accent-green-400">
+                            </label>
+                            <label class="flex items-center justify-between p-3 rounded-2xl border border-slate-100 hover:border-green-200">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2 7h20v10H2z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-slate-900">Credit Card</p>
+                                        <p class="text-xs text-slate-500">Visa, Mastercard</p>
+                                    </div>
+                                </div>
+                                <input type="radio" name="payment" class="accent-green-400">
+                            </label>
+                        </div>
+
+                        <div class="mt-5 flex items-center gap-2 text-xs text-slate-500">
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5 9 6.343 9 8s1.343 3 3 3zm0 0c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"/>
+                            </svg>
+                            Secure payments protected by hospital encryption.
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

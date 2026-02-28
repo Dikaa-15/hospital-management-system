@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <% if (typeof baseHref === 'string' && baseHref) { %>
+    <base href="<%= baseHref %>">
+    <% } %>
+    <title>My Health Portal - NextGen Health</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg-light: #f8fafc;
+            --accent: #4ade80;
+            --accent-dark: #22c55e;
+        }
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+        .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in-up { animation: none; opacity: 1; }
+        }
+
+        /* Card Styling */
+        .health-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.03);
+        }
+        .health-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Custom Checkbox */
+        .med-check {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background-color: white;
+        }
+        .med-check:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .med-check:checked::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 7px;
+            width: 6px;
+            height: 12px;
+            border: solid white;
+            border-width: 0 2.5px 2.5px 0;
+            transform: rotate(45deg);
+        }
+        .med-item.checked span {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+
+        /* Progress Ring */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s ease;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Timeline */
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 30px;
+            bottom: -20px;
+            width: 2px;
+            background: #f1f5f9;
+        }
+        .timeline-item:last-child::before {
+            display: none;
+        }
+
+        /* Button */
+        .btn-white {
+            background: white;
+            color: #15803d;
+            transition: all 0.2s ease;
+        }
+        .btn-white:hover {
+            background: #f0fdf4;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <div class="flex min-h-screen">
+        
+        <!-- Sidebar (Patient Portal) -->
+        <aside class="w-20 lg:w-64 bg-white border-r border-slate-100 flex flex-col fixed h-full z-30">
+            <!-- Logo -->
+            <div class="p-4 lg:p-6 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-400 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <span class="hidden lg:block text-lg font-bold text-slate-900">Patient Portal</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-3 lg:p-4 space-y-1">
+                <a href="overview.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-green-50 text-green-700 font-medium" aria-current="page">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span class="hidden lg:block">Home</span>
+                </a>
+                <a href="my-appointments.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span class="hidden lg:block">Appointments</span>
+                </a>
+                <a href="medical-records.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span class="hidden lg:block">Medical Records</span>
+                </a>
+                <a href="prescriptions.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    <span class="hidden lg:block">Prescriptions</span>
+                </a>
+                <a href="billing.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span class="hidden lg:block">Billing</span>
+                </a>
+            </nav>
+
+            <!-- User Section -->
+            <div class="p-4 border-t border-slate-100">
+                <div class="flex items-center gap-3">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face" alt="User" class="w-10 h-10 rounded-full object-cover">
+                    <div class="hidden lg:block flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-900 truncate">Jane Doe</p>
+                        <p class="text-xs text-slate-500">Patient ID: PX-2847</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-20 lg:ml-64">
+            
+            <!-- Top Bar -->
+            <header class="sticky top-0 bg-slate-50/90 backdrop-blur-lg z-20 border-b border-slate-100">
+                <div class="flex items-center justify-between px-6 lg:px-8 py-4">
+                    <div class="flex items-center gap-4">
+                         <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 text-green-700 text-xs font-medium">
+                            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                            Health Status: Good
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button class="relative p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-400 rounded-full"></span>
+                        </button>
+                        <form method="post" action="/logout">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <button type="submit" class="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-white">Logout</button>
+                        </form>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-6 lg:p-8 flex flex-col lg:flex-row gap-8">
+                
+                <!-- Left Column (Main) -->
+                <div class="flex-1 space-y-8">
+                    
+                    <!-- Welcome Header -->
+                    <section class="animate-fade-in-up stagger-1">
+                        <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">Good Morning, Jane!</h1>
+                        <p class="text-slate-500 mt-1">Here is your health overview for today.</p>
+                    </section>
+
+                    <!-- Quick Stats Row -->
+                    <section class="grid grid-cols-3 gap-4 animate-fade-in-up stagger-1">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 text-center shadow-sm">
+                            <p class="text-xs font-medium text-slate-400 mb-1">Blood Type</p>
+                            <p class="text-lg font-bold text-slate-900">O+</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 text-center shadow-sm">
+                            <p class="text-xs font-medium text-slate-400 mb-1">Weight</p>
+                            <p class="text-lg font-bold text-slate-900">58 kg</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 text-center shadow-sm">
+                            <p class="text-xs font-medium text-slate-400 mb-1">Height</p>
+                            <p class="text-lg font-bold text-slate-900">165 cm</p>
+                        </div>
+                    </section>
+
+                    <!-- Next Appointment Card -->
+                    <section class="animate-fade-in-up stagger-2">
+                        <div class="bg-green-400 rounded-3xl p-6 text-white relative overflow-hidden shadow-lg">
+                            <!-- Decorative Circle -->
+                            <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                            
+                            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div class="flex items-center gap-4">
+                                    <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face" alt="Doctor" class="w-16 h-16 rounded-xl object-cover border-2 border-white/50 shadow-md">
+                                    <div>
+                                        <p class="text-xs font-medium text-green-100 uppercase tracking-wider">Next Appointment</p>
+                                        <h3 class="text-xl font-bold mt-1">Dr. Sarah Johnson</h3>
+                                        <p class="text-sm text-green-100">Dermatologist</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-6">
+                                    <div class="text-right">
+                                        <div class="flex items-center gap-2 justify-end">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            <span class="font-bold">Oct 24, 2024</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 justify-end text-green-100">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span class="text-sm">10:30 AM</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                        Check In
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Health Metric Widgets -->
+                    <section class="animate-fade-in-up stagger-3">
+                        <h2 class="text-lg font-bold text-slate-900 mb-4">Your Vitals</h2>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <!-- Heart Rate -->
+                            <div class="health-card bg-white rounded-3xl p-6 border border-slate-100">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Heart Rate</p>
+                                        <h3 class="text-3xl font-bold text-slate-900 mt-1">72 <span class="text-base font-medium text-slate-400">bpm</span></h3>
+                                    </div>
+                                    <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>
+                                    </div>
+                                </div>
+                                <!-- Sparkline SVG -->
+                                <svg class="w-full h-10 text-red-200" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                    <path d="M0,20 Q10,25 20,15 T40,20 T60,10 T80,15 T100,5" fill="none" stroke="#fca5a5" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <p class="text-xs text-green-600 mt-2 flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                                    Normal Range
+                                </p>
+                            </div>
+
+                            <!-- Steps -->
+                            <div class="health-card bg-white rounded-3xl p-6 border border-slate-100">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Steps Today</p>
+                                        <h3 class="text-3xl font-bold text-slate-900 mt-1">4,521</h3>
+                                    </div>
+                                    <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                    </div>
+                                </div>
+                                <!-- Progress Ring -->
+                                <div class="flex items-center gap-4 mt-2">
+                                    <div class="relative w-12 h-12">
+                                        <svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                                            <circle cx="18" cy="18" r="15" stroke="#f1f5f9" stroke-width="3" fill="none"/>
+                                            <circle cx="18" cy="18" r="15" stroke="#4ade80" stroke-width="3" fill="none" stroke-dasharray="94.2" stroke-dashoffset="47.1" stroke-linecap="round"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-700">Goal: 10,000</p>
+                                        <p class="text-xs text-slate-400">45% Complete</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Blood Pressure -->
+                            <div class="health-card bg-white rounded-3xl p-6 border border-slate-100">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Blood Pressure</p>
+                                        <h3 class="text-3xl font-bold text-slate-900 mt-1">120/80</h3>
+                                    </div>
+                                    <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 mt-5">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Optimal</span>
+                                    <span class="text-xs text-slate-400">Last checked: 2h ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Active Prescriptions -->
+                    <section class="animate-fade-in-up stagger-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-bold text-slate-900">Today's Medication</h2>
+                            <a href="overview.html" class="text-sm font-semibold text-green-600 hover:text-green-700">View All</a>
+                        </div>
+                        <div class="bg-white rounded-3xl border border-slate-100 divide-y divide-slate-50 shadow-sm overflow-hidden">
+                            <label class="med-item flex items-center justify-between p-5 hover:bg-slate-50 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <input type="checkbox" class="med-check">
+                                    <div>
+                                        <p class="font-semibold text-slate-900">Amoxicillin</p>
+                                        <p class="text-sm text-slate-500">500mg - Post-Lunch</p>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-600">Antibiotic</span>
+                            </label>
+                            <label class="med-item flex items-center justify-between p-5 hover:bg-slate-50 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <input type="checkbox" class="med-check" checked>
+                                    <div>
+                                        <p class="font-semibold text-slate-400 line-through">Vitamin D3</p>
+                                        <p class="text-sm text-slate-400">1000 IU - Morning</p>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-green-50 text-green-600">Supplement</span>
+                            </label>
+                            <label class="med-item flex items-center justify-between p-5 hover:bg-slate-50 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <input type="checkbox" class="med-check">
+                                    <div>
+                                        <p class="font-semibold text-slate-900">Ibuprofen</p>
+                                        <p class="text-sm text-slate-500">200mg - If needed</p>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-600">Pain Relief</span>
+                            </label>
+                        </div>
+                    </section>
+
+                </div>
+
+                <!-- Right Column (Sidebar) -->
+                <div class="hidden xl:block w-80 space-y-8">
+                    
+                    <!-- Quick Actions -->
+                    <section class="animate-fade-in-up stagger-2">
+                        <h2 class="text-lg font-bold text-slate-900 mb-4">Quick Actions</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-green-200 transition-all flex flex-col items-center gap-3 group">
+                                <div class="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
+                                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-700">Find Doctor</span>
+                            </button>
+                            <button class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all flex flex-col items-center gap-3 group">
+                                <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-700">Lab Results</span>
+                            </button>
+                            <button class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col items-center gap-3 group">
+                                <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+                                    <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-700">Pay Bills</span>
+                            </button>
+                            <button class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-amber-200 transition-all flex flex-col items-center gap-3 group">
+                                <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+                                    <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-700">Messages</span>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Recent Activity Timeline -->
+                    <section class="animate-fade-in-up stagger-3">
+                        <h2 class="text-lg font-bold text-slate-900 mb-4">Recent Activity</h2>
+                        <div class="space-y-6">
+                            <!-- Item 1 -->
+                            <div class="timeline-item relative pl-8">
+                                <div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-green-100 flex items-center justify-center ring-4 ring-white">
+                                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">Lab Results Uploaded</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">Your CBC report is ready to view.</p>
+                                    <p class="text-xs text-slate-400 mt-1">2 hours ago</p>
+                                </div>
+                            </div>
+                            <!-- Item 2 -->
+                            <div class="timeline-item relative pl-8">
+                                <div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center ring-4 ring-white">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">Appointment Confirmed</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">Dr. Sarah Johnson for Oct 24.</p>
+                                    <p class="text-xs text-slate-400 mt-1">Yesterday</p>
+                                </div>
+                            </div>
+                            <!-- Item 3 -->
+                            <div class="timeline-item relative pl-8">
+                                <div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center ring-4 ring-white">
+                                    <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">Prescription Renewed</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">Amoxicillin course extended.</p>
+                                    <p class="text-xs text-slate-400 mt-1">2 days ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Checkbox Interaction for Medication
+        document.querySelectorAll('.med-item').forEach(item => {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            
+            // Set initial state
+            if (checkbox.checked) {
+                item.classList.add('checked');
+            }
+
+            item.addEventListener('click', (e) => {
+                // Prevent double toggling if clicking directly on checkbox
+                if (e.target.tagName !== 'INPUT') {
+                    checkbox.checked = !checkbox.checked;
+                }
+                item.classList.toggle('checked', checkbox.checked);
+            });
+        });
+    </script>
+</body>
+</html>

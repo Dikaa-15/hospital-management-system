@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics - MedCore HMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --fg: #0f172a;
+            --fg-muted: #64748b;
+            --accent: #4ade80;
+            --accent-soft: rgba(74, 222, 128, 0.12);
+            --border: #e2e8f0;
+            --teal: #2dd4bf;
+            --navy: #1e3a5f;
+        }
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--fg);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+        .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+        .stagger-5 { animation-delay: 0.5s; opacity: 0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in-up {
+                animation: none;
+                opacity: 1;
+            }
+        }
+
+        .nav-item {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+            transition: height 0.2s ease;
+        }
+
+        .nav-item.active::before,
+        .nav-item:hover::before {
+            height: 24px;
+        }
+
+        .nav-item.active {
+            background: var(--accent-soft);
+            color: #16a34a;
+        }
+
+        .filter-btn {
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: #15803d;
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.25);
+        }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Chart Tooltips */
+        .chart-tooltip {
+            position: absolute;
+            background: #0f172a;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .chart-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #0f172a;
+        }
+
+        .chart-point {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .chart-point:hover {
+            transform: scale(1.5);
+        }
+
+        /* Donut Chart styles */
+        .donut-segment {
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+
+        .donut-segment:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+
+        .download-btn {
+            transition: all 0.2s ease;
+        }
+
+        .download-btn:hover {
+            background: rgba(74, 222, 128, 0.1);
+            color: #15803d;
+        }
+
+        /* Sparkline */
+        .sparkline-path {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .sparkline-area {
+            fill: url(#sparklineGradient);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-20 lg:w-64 bg-white border-r border-slate-200 flex flex-col fixed h-full z-30">
+            <!-- Logo -->
+            <div class="p-4 lg:p-6 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-400 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-green-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <span class="hidden lg:block text-lg font-bold text-slate-900">MedCore</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-3 lg:p-4 space-y-1">
+                <a href="dashboard.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Dashboard">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Dashboard</span>
+                </a>
+                <a href="patiensts.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Patients">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Patients</span>
+                </a>
+                <a href="appointments.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Appointments">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Appointments</span>
+                </a>
+                <a href="schedules.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Schedule">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Schedule</span>
+                </a>
+                <a href="chats.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Messages">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Messages</span>
+                </a>
+                <a href="reports.html" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Reports" aria-current="page">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Reports</span>
+                </a>
+                <a href="settings.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Settings">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Settings</span>
+                </a>
+            </nav>
+
+            <!-- User Section -->
+            <div class="p-4 border-t border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        DR
+                    </div>
+                    <div class="hidden lg:block flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-900 truncate">Dr. Rebecca</p>
+                        <p class="text-xs text-slate-500 truncate">Cardiologist</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-20 lg:ml-64">
+            <!-- Header -->
+            <header class="sticky top-0 bg-slate-50/95 backdrop-blur-lg border-b border-slate-200 z-20">
+                <div class="px-6 lg:px-8 py-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-900">Reports & Analytics</h1>
+                            <p class="text-sm text-slate-500 mt-0.5">Medical insights and performance metrics</p>
+                        </div>
+                        
+                        <!-- Filter Bar -->
+                        <div class="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200">
+                            <button class="filter-btn px-4 py-2 text-sm font-medium rounded-lg text-slate-600" data-range="daily">Daily</button>
+                            <button class="filter-btn px-4 py-2 text-sm font-medium rounded-lg text-slate-600" data-range="weekly">Weekly</button>
+                            <button class="filter-btn active px-4 py-2 text-sm font-semibold rounded-lg" data-range="monthly">Monthly</button>
+                            <button class="filter-btn px-4 py-2 text-sm font-medium rounded-lg text-slate-600 flex items-center gap-2" data-range="custom">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                Custom
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-6 lg:p-8 space-y-6">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                    <!-- Total Consultations -->
+                    <div class="card bg-white rounded-3xl p-6 border border-slate-200 shadow-sm animate-fade-in-up stagger-1">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Total Consultations</p>
+                                <p class="text-3xl font-bold text-slate-900 mt-2">1,284</p>
+                                <div class="flex items-center gap-1 mt-2 text-green-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                                    </svg>
+                                    <span class="text-sm font-semibold">12.5%</span>
+                                </div>
+                            </div>
+                            <!-- Sparkline SVG -->
+                            <svg class="w-24 h-12" viewBox="0 0 100 50">
+                                <defs>
+                                    <linearGradient id="sparklineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="rgba(74, 222, 128, 0.3)"/>
+                                        <stop offset="100%" stop-color="rgba(74, 222, 128, 0)"/>
+                                    </linearGradient>
+                                </defs>
+                                <path class="sparkline-area" d="M0,40 L14,35 L28,38 L42,25 L56,28 L70,15 L84,18 L100,5 L100,50 L0,50 Z"/>
+                                <path class="sparkline-path" d="M0,40 L14,35 L28,38 L42,25 L56,28 L70,15 L84,18 L100,5"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Recovery Rate -->
+                    <div class="card bg-white rounded-3xl p-6 border border-slate-200 shadow-sm animate-fade-in-up stagger-2">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Recovery Rate</p>
+                                <p class="text-3xl font-bold text-slate-900 mt-2">94.8<span class="text-lg text-slate-400">%</span></p>
+                                <div class="flex items-center gap-1 mt-2 text-green-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span class="text-sm font-semibold">Target Met</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Avg Consultation Time -->
+                    <div class="card bg-white rounded-3xl p-6 border border-slate-200 shadow-sm animate-fade-in-up stagger-3">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Avg. Consultation</p>
+                                <p class="text-3xl font-bold text-slate-900 mt-2">18<span class="text-lg text-slate-400">min</span></p>
+                                <div class="flex items-center gap-1 mt-2 text-teal-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span class="text-sm font-medium">-2min from last month</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Reports -->
+                    <div class="card bg-white rounded-3xl p-6 border border-slate-200 shadow-sm animate-fade-in-up stagger-4">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Pending Reports</p>
+                                <p class="text-3xl font-bold text-slate-900 mt-2">7</p>
+                                <div class="flex items-center gap-1 mt-2 text-amber-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                    <span class="text-sm font-medium">Action Required</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Charts -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <!-- Health Trends Chart -->
+                    <div class="xl:col-span-2 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm animate-fade-in-up stagger-5">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">Patient Health Trends</h3>
+                                <p class="text-sm text-slate-500">Monthly diagnosis overview</p>
+                            </div>
+                            <div class="flex items-center gap-4 text-xs">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                    <span class="text-slate-600">Cardiology</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-teal-400"></div>
+                                    <span class="text-slate-600">General</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-slate-800"></div>
+                                    <span class="text-slate-600">Emergency</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Area Chart Container -->
+                        <div class="relative h-64" id="areaChartContainer">
+                            <!-- SVG Chart will be injected here -->
+                        </div>
+                    </div>
+
+                    <!-- Demographics Chart -->
+                    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm animate-fade-in-up stagger-6">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-bold text-slate-900">Patient Demographics</h3>
+                            <p class="text-sm text-slate-500">By age group</p>
+                        </div>
+                        
+                        <div class="relative flex items-center justify-center py-4">
+                            <!-- Donut Chart SVG -->
+                            <svg class="w-48 h-48 transform -rotate-90" viewBox="0 0 100 100">
+                                <circle class="donut-segment" cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" stroke-width="12"/>
+                                <!-- Segments: stroke-dasharray="circumference" stroke-dashoffset="offset" -->
+                                <!-- Circumference = 2 * PI * 40 ≈ 251.2 -->
+                                <circle class="donut-segment" cx="50" cy="50" r="40" fill="none" stroke="#4ade80" stroke-width="12" stroke-dasharray="75.36 175.84" stroke-dashoffset="0"/>
+                                <circle class="donut-segment" cx="50" cy="50" r="40" fill="none" stroke="#2dd4bf" stroke-width="12" stroke-dasharray="62.8 188.4" stroke-dashoffset="-75.36"/>
+                                <circle class="donut-segment" cx="50" cy="50" r="40" fill="none" stroke="#1e3a5f" stroke-width="12" stroke-dasharray="50.24 201" stroke-dashoffset="-138.16"/>
+                                <circle class="donut-segment" cx="50" cy="50" r="40" fill="none" stroke="#94a3b8" stroke-width="12" stroke-dasharray="62.8 188.4" stroke-dashoffset="-188.4"/>
+                            </svg>
+                            <div class="absolute text-center">
+                                <p class="text-3xl font-bold text-slate-900">2,847</p>
+                                <p class="text-xs text-slate-500">Total Patients</p>
+                            </div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="space-y-3 mt-4">
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                                    <span class="text-sm text-slate-600">18-30 years</span>
+                                </div>
+                                <span class="text-sm font-bold text-slate-900">30%</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-teal-400"></div>
+                                    <span class="text-sm text-slate-600">31-50 years</span>
+                                </div>
+                                <span class="text-sm font-bold text-slate-900">25%</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-slate-800"></div>
+                                    <span class="text-sm text-slate-600">51-65 years</span>
+                                </div>
+                                <span class="text-sm font-bold text-slate-900">20%</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-slate-400"></div>
+                                    <span class="text-sm text-slate-600">65+ years</span>
+                                </div>
+                                <span class="text-sm font-bold text-slate-900">25%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Summary Table -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in-up" style="animation-delay: 0.6s; opacity: 0;">
+                    <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">Monthly Report Summary</h3>
+                            <p class="text-sm text-slate-500">Downloadable medical reports</p>
+                        </div>
+                        <button class="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-xl text-sm font-semibold hover:bg-green-100 transition-colors focus-ring">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Export All
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-6 py-4">Report Name</th>
+                                    <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-6 py-4">Category</th>
+                                    <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-6 py-4">Date</th>
+                                    <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-6 py-4">Status</th>
+                                    <th class="text-right text-xs font-semibold text-slate-500 uppercase tracking-wide px-6 py-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTable">
+                                <!-- Data will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Data
+        const trendData = [
+            { month: 'Jan', cardiology: 65, general: 45, emergency: 20 },
+            { month: 'Feb', cardiology: 70, general: 50, emergency: 25 },
+            { month: 'Mar', cardiology: 68, general: 55, emergency: 22 },
+            { month: 'Apr', cardiology: 80, general: 60, emergency: 30 },
+            { month: 'May', cardiology: 85, general: 58, emergency: 28 },
+            { month: 'Jun', cardiology: 92, general: 62, emergency: 35 }
+        ];
+
+        const reports = [
+            { name: 'Patient Admission Report', category: 'Operations', date: 'Jun 15, 2024', status: 'ready' },
+            { name: 'Department Performance Q2', category: 'Analytics', date: 'Jun 10, 2024', status: 'ready' },
+            { name: 'Medication Inventory Audit', category: 'Pharmacy', date: 'Jun 08, 2024', status: 'pending' },
+            { name: 'Surgical Outcomes Summary', category: 'Surgery', date: 'Jun 05, 2024', status: 'ready' },
+            { name: 'Patient Satisfaction Survey', category: 'Feedback', date: 'Jun 01, 2024', status: 'ready' }
+        ];
+
+        // Render Area Chart
+        function renderAreaChart() {
+            const container = document.getElementById('areaChartContainer');
+            const width = container.offsetWidth;
+            const height = 256;
+            const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+
+            const maxValue = 100;
+            
+            // Scales
+            const xScale = (i) => padding.left + (i * chartWidth / (trendData.length - 1));
+            const yScale = (v) => padding.top + chartHeight - (v / maxValue * chartHeight);
+
+            // Generate path data
+            let cardiologyPath = '';
+            let generalPath = '';
+            let emergencyPath = '';
+
+            trendData.forEach((d, i) => {
+                const x = xScale(i);
+                const yCardio = yScale(d.cardiology);
+                const yGeneral = yScale(d.general);
+                const yEmergency = yScale(d.emergency);
+
+                if (i === 0) {
+                    cardiologyPath += `M ${x},${yCardio}`;
+                    generalPath += `M ${x},${yGeneral}`;
+                    emergencyPath += `M ${x},${yEmergency}`;
+                } else {
+                    cardiologyPath += ` L ${x},${yCardio}`;
+                    generalPath += ` L ${x},${yGeneral}`;
+                    emergencyPath += ` L ${x},${yEmergency}`;
+                }
+            });
+
+            // Area paths (closed)
+            const cardiologyArea = cardiologyPath + ` L ${xScale(trendData.length - 1)},${padding.top + chartHeight} L ${padding.left},${padding.top + chartHeight} Z`;
+            
+            // Generate Y-axis labels
+            const yLabels = [0, 25, 50, 75, 100].map(v => `
+                <text x="${padding.left - 10}" y="${yScale(v) + 4}" text-anchor="end" class="text-xs fill-slate-400">${v}</text>
+                <line x1="${padding.left}" y1="${yScale(v)}" x2="${width - padding.right}" y2="${yScale(v)}" stroke="#f1f5f9" stroke-width="1"/>
+            `).join('');
+
+            // Generate X-axis labels
+            const xLabels = trendData.map((d, i) => `
+                <text x="${xScale(i)}" y="${height - 10}" text-anchor="middle" class="text-xs fill-slate-400">${d.month}</text>
+            `).join('');
+
+            // Points with tooltips
+            const points = trendData.map((d, i) => `
+                <circle class="chart-point" cx="${xScale(i)}" cy="${yScale(d.cardiology)}" r="5" fill="#4ade80" stroke="white" stroke-width="2"
+                        onmouseenter="showTooltip(event, '${d.month}', 'Cardiology: ${d.cardiology}')"
+                        onmouseleave="hideTooltip()"/>
+            `).join('');
+
+            const svg = `
+                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="rgba(74, 222, 128, 0.4)"/>
+                            <stop offset="100%" stop-color="rgba(74, 222, 128, 0)"/>
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Grid lines and Labels -->
+                    ${yLabels}
+                    ${xLabels}
+                    
+                    <!-- Areas -->
+                    <path d="${cardiologyArea}" fill="url(#areaGradient)" />
+                    <path d="${emergencyPath}" fill="none" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="5,5" opacity="0.5"/>
+                    <path d="${generalPath}" fill="none" stroke="#2dd4bf" stroke-width="2" opacity="0.7"/>
+                    
+                    <!-- Main Line -->
+                    <path d="${cardiologyPath}" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    
+                    <!-- Points -->
+                    ${points}
+                </svg>
+                <div id="chartTooltip" class="chart-tooltip"></div>
+            `;
+
+            container.innerHTML = svg;
+        }
+
+        // Tooltip functions
+        function showTooltip(event, label, value) {
+            const tooltip = document.getElementById('chartTooltip');
+            const rect = event.target.getBoundingClientRect();
+            const containerRect = document.getElementById('areaChartContainer').getBoundingClientRect();
+            
+            tooltip.innerHTML = `<strong>${label}</strong><br>${value}`;
+            tooltip.style.opacity = '1';
+            tooltip.style.left = `${rect.left - containerRect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+            tooltip.style.top = `${rect.top - containerRect.top - tooltip.offsetHeight - 10}px`;
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('chartTooltip');
+            if (tooltip) tooltip.style.opacity = '0';
+        }
+
+        // Render Report Table
+        function renderReportTable() {
+            const tbody = document.getElementById('reportTable');
+            const statusStyles = {
+                'ready': 'bg-green-100 text-green-700',
+                'pending': 'bg-amber-100 text-amber-700'
+            };
+
+            tbody.innerHTML = reports.map(r => `
+                <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <span class="font-medium text-slate-900">${r.name}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600">${r.category}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">${r.date}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusStyles[r.status]}">
+                            ${r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button class="download-btn p-2 rounded-lg text-slate-400 hover:text-green-600 focus-ring" aria-label="Download PDF">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                            <button class="download-btn p-2 rounded-lg text-slate-400 hover:text-green-600 focus-ring" aria-label="Download Excel">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Filter Button Interaction
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAreaChart();
+            renderReportTable();
+            
+            // Redraw chart on resize
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(renderAreaChart, 250);
+            });
+        });
+    </script>
+</body>
+</html>

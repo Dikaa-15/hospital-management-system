@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - NextGen Health</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg-light: #f8fafc;
+            --accent: #4ade80;
+            --accent-dark: #22c55e;
+        }
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+        .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+        .stagger-5 { animation-delay: 0.5s; opacity: 0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in {
+                animation: none;
+                opacity: 1;
+            }
+        }
+
+        /* Form Styling */
+        .form-input-group {
+            position: relative;
+        }
+
+        .form-input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        .form-input {
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: #4ade80;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+        }
+
+        .form-input:focus + .form-input-icon,
+        .form-input:focus ~ .form-input-icon {
+            color: #4ade80;
+        }
+
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background-color: white;
+        }
+
+        .custom-checkbox:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .custom-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 5px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--accent);
+            color: #15803d;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-dark);
+            box-shadow: 0 10px 20px rgba(74, 222, 128, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #0f172a;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen antialiased">
+
+    <div class="min-h-screen flex flex-col lg:flex-row">
+        
+        <!-- Left Side (Visual Branding) -->
+        <div class="hidden lg:block lg:w-1/2 relative overflow-hidden">
+            <!-- Background Image (Bright, Airy Medical Setting) -->
+            <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2070&auto=format&fit=crop');"></div>
+            
+            <!-- Overlay Gradient -->
+            <div class="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/80 lg:from-slate-900/40 lg:via-slate-900/20 lg:to-transparent"></div>
+
+            <!-- Content Container -->
+            <div class="relative z-10 h-full flex flex-col justify-center items-center text-center p-12">
+                <!-- Logo -->
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/90 backdrop-blur-sm shadow-xl mb-8 animate-fade-in">
+                    <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </div>
+
+                <h2 class="text-4xl font-bold text-white drop-shadow-lg mb-4 animate-fade-in stagger-1" style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    Welcome Back to<br>NextGen Health
+                </h2>
+                <p class="text-lg text-white/90 max-w-sm drop-shadow-md animate-fade-in stagger-2" style="text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    Streamlined hospital management awaits you. Access your dashboard, manage appointments, and view patient records securely.
+                </p>
+                
+                <!-- Trust Badge -->
+                <div class="absolute bottom-12 left-12 right-12 flex items-center justify-center gap-8 text-white/80 text-sm animate-fade-in stagger-3">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        <span>HIPAA Compliant</span>
+                    </div>
+                    <div class="w-px h-4 bg-white/30"></div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <span>256-bit Encryption</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side (Login Form) -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white">
+            <div class="w-full max-w-md space-y-8">
+                
+                <!-- Mobile Logo (Visible only on small screens) -->
+                <div class="lg:hidden text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-50 mb-4">
+                        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-slate-900">NextGen Health</h1>
+                </div>
+
+                <!-- Header -->
+                <div class="animate-fade-in stagger-1">
+                    <h2 class="text-2xl font-bold text-slate-900">Sign In</h2>
+                    <p class="text-sm text-slate-500 mt-1">Enter your credentials to access your dashboard.</p>
+                </div>
+
+                <!-- Form -->
+                <form class="space-y-6" id="loginForm" method="post" action="/login">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    
+                    <!-- Email Input -->
+                    <div class="form-input-group animate-fade-in stagger-2">
+                        <label for="email" class="block text-xs font-semibold text-slate-500 mb-1.5">Email Address</label>
+                        <div class="relative">
+                            <input type="email" id="email" name="email" class="form-input w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" placeholder="you@hospital.com" required>
+                            <div class="form-input-icon">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="form-input-group animate-fade-in stagger-3">
+                        <label for="password" class="block text-xs font-semibold text-slate-500 mb-1.5">Password</label>
+                        <div class="relative">
+                            <input type="password" id="password" name="password" class="form-input w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none" placeholder="Enter your password" required>
+                            <!-- Lock Icon -->
+                            <div class="form-input-icon">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                            </div>
+                            <!-- Show/Hide Button -->
+                            <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 focus:outline-none" aria-label="Toggle password visibility">
+                                <svg class="w-5 h-5" id="eyeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                <svg class="w-5 h-5 hidden" id="eyeOffIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action Row -->
+                    <div class="flex items-center justify-between animate-fade-in stagger-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="custom-checkbox">
+                            <span class="text-xs font-medium text-slate-600">Remember me</span>
+                        </label>
+                        <a href="/templates/landing-page.html#about" class="text-xs font-semibold text-green-600 hover:text-green-700 hover:underline transition-colors">
+                            Forgot Password?
+                        </a>
+                    </div>
+
+                    <p id="loginError" class="text-xs text-red-600 <%= error ? '' : 'hidden' %>"><%= error || 'Invalid email or password.' %></p>
+
+                    <!-- Submit Button -->
+                    <div class="pt-2 animate-fade-in stagger-5">
+                        <button type="submit" id="loginBtn" class="btn-primary w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 relative overflow-hidden">
+                            <span id="btnText">Sign In</span>
+                            <svg class="w-4 h-4" id="btnArrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                            </svg>
+                            <!-- Spinner (Hidden by default) -->
+                            <svg class="w-5 h-5 hidden" id="btnSpinner" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="relative flex items-center justify-center my-6">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-slate-200"></div>
+                        </div>
+                        <div class="relative bg-white px-4 text-xs text-slate-400 font-medium">OR CONTINUE WITH</div>
+                    </div>
+
+                    <!-- SSO Button -->
+                    <div>
+                        <button type="button" class="btn-secondary w-full py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            Sign in with Hospital ID (SSO)
+                        </button>
+                    </div>
+
+                </form>
+
+                <!-- Footer -->
+                <div class="text-center pt-4">
+                    <p class="text-sm text-slate-500">
+                        Don't have an account? 
+                        <a href="/templates/auth/sign-up.html" class="font-semibold text-green-600 hover:text-green-700 hover:underline">Register here</a>
+                    </p>
+                </div>
+
+                <!-- Security Badge -->
+                <div class="text-center pt-6 mt-6 border-t border-slate-100">
+                    <div class="inline-flex items-center gap-2 text-xs text-slate-400">
+                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        Secure 256-bit AES Encryption Active
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Password Visibility Toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            eyeIcon.classList.toggle('hidden');
+            eyeOffIcon.classList.toggle('hidden');
+        });
+
+        // Login Form Submission with Loading State
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const btnText = document.getElementById('btnText');
+        const btnArrow = document.getElementById('btnArrow');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const loginError = document.getElementById('loginError');
+
+        loginForm.addEventListener('submit', (e) => {
+            if (loginError) {
+                loginError.classList.add('hidden');
+            }
+            
+            // Disable button and show spinner
+            loginBtn.disabled = true;
+            loginBtn.classList.add('opacity-90', 'cursor-not-allowed');
+            
+            btnText.textContent = 'Signing in...';
+            btnArrow.classList.add('hidden');
+            btnSpinner.classList.remove('hidden');
+            btnSpinner.classList.add('spinner');
+        });
+    </script>
+</body>
+</html>

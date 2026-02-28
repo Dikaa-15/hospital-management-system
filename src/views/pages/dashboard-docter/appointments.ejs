@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments - MedCore HMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --fg: #0f172a;
+            --fg-muted: #64748b;
+            --accent: #4ade80;
+            --accent-soft: rgba(74, 222, 128, 0.12);
+            --border: #e2e8f0;
+            --teal: #2dd4bf;
+            --navy: #1e3a5f;
+        }
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--fg);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.6; }
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        .animate-slide-in-left {
+            animation: slideInLeft 0.4s ease-out forwards;
+        }
+
+        .stagger-1 { animation-delay: 0.05s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.15s; opacity: 0; }
+        .stagger-4 { animation-delay: 0.2s; opacity: 0; }
+        .stagger-5 { animation-delay: 0.25s; opacity: 0; }
+        .stagger-6 { animation-delay: 0.3s; opacity: 0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in-up,
+            .animate-slide-in-left {
+                animation: none;
+                opacity: 1;
+            }
+        }
+
+        .nav-item {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+            transition: height 0.2s ease;
+        }
+
+        .nav-item.active::before,
+        .nav-item:hover::before {
+            height: 24px;
+        }
+
+        .nav-item.active {
+            background: var(--accent-soft);
+            color: #16a34a;
+        }
+
+        .date-item {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .date-item:hover:not(.active) {
+            background: rgba(74, 222, 128, 0.08);
+        }
+
+        .date-item.active {
+            background: var(--accent);
+            color: #15803d;
+        }
+
+        .date-item.today:not(.active) {
+            border: 2px solid var(--accent);
+        }
+
+        .tab-item {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .tab-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.2s ease;
+        }
+
+        .tab-item.active::after {
+            width: 100%;
+        }
+
+        .tab-item.active {
+            color: #15803d;
+        }
+
+        .appointment-card {
+            transition: all 0.2s ease;
+        }
+
+        .appointment-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .appointment-card.current {
+            border-left: 4px solid var(--accent);
+            background: linear-gradient(to right, rgba(74, 222, 128, 0.05), transparent);
+        }
+
+        .appointment-card.upcoming {
+            border-left: 4px solid #94a3b8;
+        }
+
+        .appointment-card.completed {
+            opacity: 0.7;
+        }
+
+        .pulse-dot {
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        .pulse-ring {
+            position: relative;
+        }
+
+        .pulse-ring::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse-ring 2s ease-out infinite;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #15803d;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: #22c55e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--fg);
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .focus-ring:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.3);
+        }
+
+        .status-waiting {
+            background: rgba(251, 191, 36, 0.1);
+            color: #b45309;
+        }
+
+        .status-confirmed {
+            background: rgba(74, 222, 128, 0.15);
+            color: #15803d;
+        }
+
+        .status-in-progress {
+            background: rgba(74, 222, 128, 0.2);
+            color: #15803d;
+        }
+
+        .status-completed {
+            background: rgba(100, 116, 139, 0.1);
+            color: #475569;
+        }
+
+        .status-cancelled {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .stat-card {
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .scroll-container {
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .time-indicator {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .time-indicator::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .empty-illustration {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-20 lg:w-64 bg-white border-r border-slate-200 flex flex-col fixed h-full z-30">
+            <!-- Logo -->
+            <div class="p-4 lg:p-6 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-400 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-green-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <span class="hidden lg:block text-lg font-bold text-slate-900">MedCore</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-3 lg:p-4 space-y-1">
+                <a href="dashboard.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Dashboard">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Dashboard</span>
+                </a>
+                <a href="patiensts.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Patients">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Patients</span>
+                </a>
+                <a href="appointments.html" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Appointments" aria-current="page">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Appointments</span>
+                </a>
+                <a href="schedules.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Schedule">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Schedule</span>
+                </a>
+                <a href="chats.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Messages">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Messages</span>
+                </a>
+                <a href="reports.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Reports">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Reports</span>
+                </a>
+                <a href="settings.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Settings">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="hidden lg:block font-medium">Settings</span>
+                </a>
+            </nav>
+
+            <!-- User Section -->
+            <div class="p-4 border-t border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        DR
+                    </div>
+                    <div class="hidden lg:block flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-900 truncate">Dr. Rebecca</p>
+                        <p class="text-xs text-slate-500 truncate">Cardiologist</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-20 lg:ml-64">
+            <!-- Header -->
+            <header class="sticky top-0 bg-slate-50/95 backdrop-blur-lg border-b border-slate-200 z-20">
+                <div class="px-6 lg:px-8 py-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-900">Appointments</h1>
+                            <p class="text-sm text-slate-500 mt-1">Manage your schedule and patient queue</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button class="btn-secondary px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 focus-ring">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                                Export
+                            </button>
+                            <button class="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 focus-ring" id="newAppointmentBtn">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                                New Appointment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex">
+                <!-- Appointments Content -->
+                <div class="flex-1 p-6 lg:p-8">
+                    <!-- Date Picker -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 mb-6 animate-fade-in-up">
+                        <div class="flex items-center justify-between mb-4">
+                            <button class="p-2 hover:bg-slate-100 rounded-lg transition-colors focus-ring" id="prevWeek" aria-label="Previous week">
+                                <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h2 class="text-lg font-bold text-slate-900" id="monthYear">June 2024</h2>
+                            <button class="p-2 hover:bg-slate-100 rounded-lg transition-colors focus-ring" id="nextWeek" aria-label="Next week">
+                                <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="scroll-container flex gap-2 overflow-x-auto pb-2" id="dateContainer">
+                            <!-- Date items will be rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-fit mb-6 animate-fade-in-up stagger-1">
+                        <button class="tab-item active px-4 py-2 text-sm font-semibold rounded-lg transition-colors" data-tab="upcoming">Upcoming</button>
+                        <button class="tab-item px-4 py-2 text-sm font-medium text-slate-600 rounded-lg transition-colors" data-tab="pending">Pending</button>
+                        <button class="tab-item px-4 py-2 text-sm font-medium text-slate-600 rounded-lg transition-colors" data-tab="completed">Completed</button>
+                        <button class="tab-item px-4 py-2 text-sm font-medium text-slate-600 rounded-lg transition-colors" data-tab="cancelled">Cancelled</button>
+                    </div>
+
+                    <!-- Appointments List -->
+                    <div class="space-y-4" id="appointmentsList">
+                        <!-- Appointments will be rendered here -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="hidden text-center py-16" id="emptyState">
+                        <div class="empty-illustration mx-auto w-48 h-48 mb-6">
+                            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="100" cy="100" r="80" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="2"/>
+                                <rect x="60" y="50" width="80" height="100" rx="8" fill="white" stroke="#e2e8f0" stroke-width="2"/>
+                                <line x1="75" y1="75" x2="125" y2="75" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="75" y1="95" x2="125" y2="95" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="75" y1="115" x2="105" y2="115" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                                <circle cx="140" cy="130" r="30" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+                                <path d="M128 130L136 138L152 122" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">No Appointments Found</h3>
+                        <p class="text-sm text-slate-500 mb-6">There are no appointments scheduled for this date.</p>
+                        <button class="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold focus-ring">
+                            Schedule New Appointment
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar - Quick Stats -->
+                <aside class="hidden xl:block w-80 p-6 lg:p-8 border-l border-slate-200 bg-white">
+                    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Today's Summary</h3>
+                    
+                    <!-- Current Time -->
+                    <div class="bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-5 mb-4 border border-green-100 animate-fade-in-up">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-slate-500">Current Time</span>
+                            <div class="w-2 h-2 rounded-full bg-green-400 pulse-dot"></div>
+                        </div>
+                        <p class="text-3xl font-bold text-slate-900" id="currentTime">10:45 AM</p>
+                        <p class="text-sm text-slate-500 mt-1" id="currentDate">Saturday, June 15</p>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="space-y-3">
+                        <div class="stat-card bg-slate-50 rounded-2xl p-4 border border-slate-200 animate-fade-in-up stagger-1">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-slate-900" id="totalAppointments">12</p>
+                                    <p class="text-xs text-slate-500">Total Appointments</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card bg-slate-50 rounded-2xl p-4 border border-slate-200 animate-fade-in-up stagger-2">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-slate-900" id="remainingPatients">7</p>
+                                    <p class="text-xs text-slate-500">Remaining Patients</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card bg-slate-50 rounded-2xl p-4 border border-slate-200 animate-fade-in-up stagger-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-slate-900" id="avgWaitTime">12</p>
+                                    <p class="text-xs text-slate-500">Avg. Wait (mins)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Next -->
+                    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wide mt-6 mb-4">Coming Up Next</h3>
+                    <div class="space-y-3" id="upcomingNext">
+                        <!-- Will be rendered dynamically -->
+                    </div>
+
+                    <!-- Legend -->
+                    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wide mt-6 mb-4">Status Legend</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                            <span class="text-sm text-slate-600">Waiting</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                            <span class="text-sm text-slate-600">Confirmed / In Progress</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-slate-400"></div>
+                            <span class="text-sm text-slate-600">Completed</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                            <span class="text-sm text-slate-600">Cancelled</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <!-- Session Modal -->
+    <div id="sessionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" id="modalOverlay"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fade-in-up">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-slate-900">Start Consultation</h3>
+                <button class="p-2 hover:bg-slate-100 rounded-lg transition-colors" id="closeModal" aria-label="Close modal">
+                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="modalContent">
+                <!-- Content will be populated dynamically -->
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button class="flex-1 btn-secondary px-4 py-2.5 rounded-xl text-sm font-semibold focus-ring" id="cancelSession">Cancel</button>
+                <button class="flex-1 btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold focus-ring" id="confirmSession">Start Session</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const appointments = [
+            {
+                id: 'APT-001',
+                patientName: 'Michael Roberts',
+                patientId: 'PX-9920',
+                avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
+                time: '09:00 AM',
+                endTime: '09:30 AM',
+                duration: 30,
+                reason: 'Follow-up consultation for hypertension management',
+                status: 'completed',
+                type: 'follow-up',
+                date: new Date()
+            },
+            {
+                id: 'APT-002',
+                patientName: 'Sarah Johnson',
+                patientId: 'PX-8847',
+                avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
+                time: '09:30 AM',
+                endTime: '10:00 AM',
+                duration: 30,
+                reason: 'Cardiac arrhythmia monitoring',
+                status: 'completed',
+                type: 'consultation',
+                date: new Date()
+            },
+            {
+                id: 'APT-003',
+                patientName: 'James Wilson',
+                patientId: 'PX-7653',
+                avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face',
+                time: '10:00 AM',
+                endTime: '10:30 AM',
+                duration: 30,
+                reason: 'Post-surgery recovery check',
+                status: 'in-progress',
+                type: 'check-up',
+                date: new Date()
+            },
+            {
+                id: 'APT-004',
+                patientName: 'Emily Davis',
+                patientId: 'PX-6521',
+                avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face',
+                time: '10:30 AM',
+                endTime: '11:00 AM',
+                duration: 30,
+                reason: 'Annual health checkup',
+                status: 'waiting',
+                type: 'check-up',
+                date: new Date()
+            },
+            {
+                id: 'APT-005',
+                patientName: 'Robert Brown',
+                patientId: 'PX-5438',
+                avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face',
+                time: '11:00 AM',
+                endTime: '11:30 AM',
+                duration: 30,
+                reason: 'Coronary artery disease follow-up',
+                status: 'confirmed',
+                type: 'follow-up',
+                date: new Date()
+            },
+            {
+                id: 'APT-006',
+                patientName: 'Jennifer Martinez',
+                patientId: 'PX-4892',
+                avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face',
+                time: '11:30 AM',
+                endTime: '12:00 PM',
+                duration: 30,
+                reason: 'Hyperlipidemia management review',
+                status: 'confirmed',
+                type: 'consultation',
+                date: new Date()
+            },
+            {
+                id: 'APT-007',
+                patientName: 'David Lee',
+                patientId: 'PX-3847',
+                avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&h=80&fit=crop&crop=face',
+                time: '01:00 PM',
+                endTime: '01:30 PM',
+                duration: 30,
+                reason: 'Diabetes management consultation',
+                status: 'pending',
+                type: 'consultation',
+                date: new Date()
+            },
+            {
+                id: 'APT-008',
+                patientName: 'Lisa Thompson',
+                patientId: 'PX-2756',
+                avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=80&h=80&fit=crop&crop=face',
+                time: '01:30 PM',
+                endTime: '02:00 PM',
+                duration: 30,
+                reason: 'Migraine follow-up assessment',
+                status: 'pending',
+                type: 'follow-up',
+                date: new Date()
+            },
+            {
+                id: 'APT-009',
+                patientName: 'William Anderson',
+                patientId: 'PX-1684',
+                avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face',
+                time: '02:00 PM',
+                endTime: '02:30 PM',
+                duration: 30,
+                reason: 'Atrial fibrillation monitoring',
+                status: 'confirmed',
+                type: 'consultation',
+                date: new Date()
+            },
+            {
+                id: 'APT-010',
+                patientName: 'Amanda White',
+                patientId: 'PX-0952',
+                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face',
+                time: '02:30 PM',
+                endTime: '03:00 PM',
+                duration: 30,
+                reason: 'Routine health screening',
+                status: 'cancelled',
+                type: 'check-up',
+                date: new Date()
+            }
+        ];
+
+        // State
+        let currentDate = new Date();
+        let selectedDate = new Date();
+        let activeTab = 'upcoming';
+        let selectedAppointment = null;
+
+        // DOM Elements
+        const dateContainer = document.getElementById('dateContainer');
+        const appointmentsList = document.getElementById('appointmentsList');
+        const emptyState = document.getElementById('emptyState');
+        const monthYear = document.getElementById('monthYear');
+        const sessionModal = document.getElementById('sessionModal');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalContent = document.getElementById('modalContent');
+        const upcomingNext = document.getElementById('upcomingNext');
+
+        // Helper functions
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function isSameDay(date1, date2) {
+            return date1.toDateString() === date2.toDateString();
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'waiting': 'status-waiting',
+                'confirmed': 'status-confirmed',
+                'in-progress': 'status-in-progress',
+                'completed': 'status-completed',
+                'cancelled': 'status-cancelled',
+                'pending': 'status-waiting'
+            };
+            return classes[status] || 'status-waiting';
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'waiting': 'Waiting',
+                'confirmed': 'Confirmed',
+                'in-progress': 'In Progress',
+                'completed': 'Completed',
+                'cancelled': 'Cancelled',
+                'pending': 'Pending'
+            };
+            return labels[status] || status;
+        }
+
+        // Render date picker
+        function renderDatePicker() {
+            dateContainer.innerHTML = '';
+            
+            const startOfWeek = new Date(selectedDate);
+            startOfWeek.setDate(startOfWeek.getDate() - 3);
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const dayNum = date.getDate();
+                const isToday = isSameDay(date, currentDate);
+                const isSelected = isSameDay(date, selectedDate);
+                
+                const dateItem = document.createElement('button');
+                dateItem.className = `date-item flex flex-col items-center p-3 rounded-xl min-w-[60px] ${isSelected ? 'active' : ''} ${isToday && !isSelected ? 'today' : ''}`;
+                dateItem.innerHTML = `
+                    <span class="text-xs font-medium ${isSelected ? 'text-green-800' : 'text-slate-500'}">${dayName}</span>
+                    <span class="text-lg font-bold ${isSelected ? 'text-green-900' : 'text-slate-900'} mt-1">${dayNum}</span>
+                `;
+                dateItem.addEventListener('click', () => selectDate(date));
+                dateContainer.appendChild(dateItem);
+            }
+            
+            monthYear.textContent = formatDate(selectedDate);
+        }
+
+        function selectDate(date) {
+            selectedDate = date;
+            renderDatePicker();
+            renderAppointments();
+        }
+
+        // Filter appointments by tab
+        function filterByTab(appointments, tab) {
+            switch(tab) {
+                case 'upcoming':
+                    return appointments.filter(a => ['waiting', 'confirmed', 'in-progress'].includes(a.status));
+                case 'pending':
+                    return appointments.filter(a => a.status === 'pending');
+                case 'completed':
+                    return appointments.filter(a => a.status === 'completed');
+                case 'cancelled':
+                    return appointments.filter(a => a.status === 'cancelled');
+                default:
+                    return appointments;
+            }
+        }
+
+        // Render appointments
+        function renderAppointments() {
+            const filtered = filterByTab(appointments, activeTab);
+            
+            if (filtered.length === 0) {
+                appointmentsList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            appointmentsList.innerHTML = filtered.map((apt, index) => {
+                const isCurrent = apt.status === 'in-progress';
+                const isUpcoming = ['confirmed', 'waiting'].includes(apt.status);
+                const cardClass = isCurrent ? 'current' : apt.status === 'completed' ? 'completed' : isUpcoming ? 'upcoming' : '';
+                
+                return `
+                    <div class="appointment-card bg-white rounded-2xl border border-slate-200 p-5 shadow-sm ${cardClass} animate-fade-in-up" style="animation-delay: ${index * 0.05}s">
+                        <div class="flex items-center gap-4">
+                            <!-- Time Slot -->
+                            <div class="flex-shrink-0 w-28">
+                                <p class="text-xl font-bold text-slate-900">${apt.time}</p>
+                                <p class="text-sm text-slate-500">${apt.endTime}</p>
+                            </div>
+                            
+                            <!-- Divider -->
+                            <div class="w-px h-16 bg-slate-200"></div>
+                            
+                            <!-- Patient Info -->
+                            <div class="flex-1 flex items-center gap-4">
+                                <img src="${apt.avatar}" alt="${apt.patientName}" class="w-12 h-12 rounded-full object-cover ring-2 ring-slate-100">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <h4 class="text-base font-bold text-slate-900">${apt.patientName}</h4>
+                                        <span class="text-xs text-slate-400 font-mono">${apt.patientId}</span>
+                                    </div>
+                                    <p class="text-sm text-slate-500 truncate mt-0.5">${apt.reason}</p>
+                                    <div class="flex items-center gap-2 mt-1.5">
+                                        <span class="inline-flex items-center gap-1 text-xs text-slate-500">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            ${apt.duration} min
+                                        </span>
+                                        <span class="text-xs text-slate-400">•</span>
+                                        <span class="text-xs text-slate-500 capitalize">${apt.type}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Status & Action -->
+                            <div class="flex items-center gap-3">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusClass(apt.status)}">
+                                    ${apt.status === 'waiting' ? '<span class="w-1.5 h-1.5 rounded-full bg-amber-500 pulse-dot"></span>' : ''}
+                                    ${apt.status === 'in-progress' ? '<span class="w-1.5 h-1.5 rounded-full bg-green-500 pulse-dot"></span>' : ''}
+                                    ${getStatusLabel(apt.status)}
+                                </span>
+                                
+                                ${apt.status === 'waiting' || apt.status === 'confirmed' ? `
+                                    <button class="btn-primary px-4 py-2 rounded-xl text-sm font-semibold focus-ring start-session-btn" data-id="${apt.id}">
+                                        Start Session
+                                    </button>
+                                ` : apt.status === 'in-progress' ? `
+                                    <button class="btn-secondary px-4 py-2 rounded-xl text-sm font-semibold focus-ring">
+                                        View Details
+                                    </button>
+                                ` : apt.status === 'completed' ? `
+                                    <button class="btn-secondary px-4 py-2 rounded-xl text-sm font-medium focus-ring">
+                                        View Summary
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Add click handlers for start session buttons
+            document.querySelectorAll('.start-session-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openSessionModal(btn.dataset.id);
+                });
+            });
+        }
+
+        // Render upcoming next
+        function renderUpcomingNext() {
+            const upcoming = appointments
+                .filter(a => ['waiting', 'confirmed', 'in-progress'].includes(a.status))
+                .slice(0, 3);
+            
+            upcomingNext.innerHTML = upcoming.map(apt => `
+                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <img src="${apt.avatar}" alt="${apt.patientName}" class="w-9 h-9 rounded-full object-cover">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-900 truncate">${apt.patientName}</p>
+                        <p class="text-xs text-slate-500">${apt.time}</p>
+                    </div>
+                    <span class="w-2 h-2 rounded-full ${apt.status === 'in-progress' ? 'bg-green-400 pulse-dot' : 'bg-amber-400'}"></span>
+                </div>
+            `).join('');
+        }
+
+        // Update current time
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = formatTime(now);
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        }
+
+        // Open session modal
+        function openSessionModal(appointmentId) {
+            selectedAppointment = appointments.find(a => a.id === appointmentId);
+            if (!selectedAppointment) return;
+            
+            modalContent.innerHTML = `
+                <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl mb-4">
+                    <img src="${selectedAppointment.avatar}" alt="${selectedAppointment.patientName}" class="w-14 h-14 rounded-full object-cover">
+                    <div>
+                        <h4 class="font-bold text-slate-900">${selectedAppointment.patientName}</h4>
+                        <p class="text-sm text-slate-500">${selectedAppointment.time} - ${selectedAppointment.endTime}</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <span class="text-sm text-slate-600">${selectedAppointment.reason}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="text-sm text-slate-600">${selectedAppointment.duration} minutes session</span>
+                    </div>
+                </div>
+            `;
+            
+            sessionModal.classList.remove('hidden');
+        }
+
+        // Close modal
+        function closeSessionModal() {
+            sessionModal.classList.add('hidden');
+            selectedAppointment = null;
+        }
+
+        // Update stats
+        function updateStats() {
+            const todayAppointments = appointments.filter(a => isSameDay(a.date, selectedDate));
+            const remaining = todayAppointments.filter(a => ['waiting', 'confirmed', 'in-progress', 'pending'].includes(a.status));
+            
+            document.getElementById('totalAppointments').textContent = todayAppointments.length;
+            document.getElementById('remainingPatients').textContent = remaining.length;
+        }
+
+        // Event Listeners
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab-item').forEach(t => {
+                    t.classList.remove('active');
+                    t.classList.add('text-slate-600');
+                });
+                tab.classList.add('active');
+                tab.classList.remove('text-slate-600');
+                activeTab = tab.dataset.tab;
+                renderAppointments();
+            });
+        });
+
+        document.getElementById('prevWeek').addEventListener('click', () => {
+            selectedDate.setDate(selectedDate.getDate() - 7);
+            renderDatePicker();
+        });
+
+        document.getElementById('nextWeek').addEventListener('click', () => {
+            selectedDate.setDate(selectedDate.getDate() + 7);
+            renderDatePicker();
+        });
+
+        document.getElementById('closeModal').addEventListener('click', closeSessionModal);
+        document.getElementById('cancelSession').addEventListener('click', closeSessionModal);
+        modalOverlay.addEventListener('click', closeSessionModal);
+
+        document.getElementById('confirmSession').addEventListener('click', () => {
+            if (selectedAppointment) {
+                selectedAppointment.status = 'in-progress';
+                renderAppointments();
+                renderUpcomingNext();
+                updateStats();
+                closeSessionModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !sessionModal.classList.contains('hidden')) {
+                closeSessionModal();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDatePicker();
+            renderAppointments();
+            renderUpcomingNext();
+            updateCurrentTime();
+            updateStats();
+            
+            // Update time every minute
+            setInterval(updateCurrentTime, 60000);
+        });
+    </script>
+</body>
+</html>
