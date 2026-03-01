@@ -85,6 +85,28 @@
   - Update patient (quick edit)
   - Active/Discharged toggle via soft delete (`deleted_at`)
   - Route: `/templates/dashboard-admin/patient-directory.html` + POST endpoints `/admin/patients/*`
+- CRUD awal Inventory & Pharmacy sudah diimplementasikan:
+  - Inventory summary cards (total items, low stock, expiring soon)
+  - List + search/filter (query, category, stock status)
+  - Create item
+  - Update item (quick edit)
+  - Activate/Deactivate item
+  - Batch tracking list + add batch
+  - Route: `/templates/dashboard-admin/inventory-management.html` + POST endpoints `/admin/inventory/*`
+- CRUD awal Financial & Billing sudah diimplementasikan:
+  - Financial summary cards (revenue, pending claims, outstanding bills, savings)
+  - Invoice list + filter (range, status, search)
+  - Invoice detail panel (gross/discount/net/paid/outstanding)
+  - Post payment dan auto-update invoice status
+  - Manual invoice status update
+  - Insurance claim queue preview
+  - Route: `/templates/dashboard-admin/financial-management.html` + POST endpoints `/admin/finance/*`
+- Modul awal Schedule & Wards sudah diimplementasikan:
+  - Doctor shifts (list per week + create + delete)
+  - Ward room occupancy (list + create/update room data)
+  - Transfer queue (create + status update)
+  - Auto-bootstrap tables: `doctor_shifts`, `ward_rooms`, `transfer_queue`
+  - Route: `/templates/dashboard-admin/schedule-ward-management.html` + POST endpoints `/admin/schedule/*`, `/admin/wards/*`, `/admin/transfers/*`
 
 ## Next Recommended Steps
 1. Jalankan bootstrap SQL: `sql/phase1_phase2_auth_rbac.sql` lalu `sql/phase2_seed_demo_users.sql`.

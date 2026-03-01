@@ -8,6 +8,9 @@ const router = express.Router();
 router.use(require('../modules/auth/auth.routes'));
 router.use(require('../modules/admin/users.routes'));
 router.use(require('../modules/admin/patients.routes'));
+router.use(require('../modules/admin/inventory.routes'));
+router.use(require('../modules/admin/finance.routes'));
+router.use(require('../modules/admin/schedule.routes'));
 
 router.get('/', (req, res) => {
   return res.render('pages/landing-page', {
