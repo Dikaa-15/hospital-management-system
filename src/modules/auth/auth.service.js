@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const supabase = require('./supabaseClient'); // Pastikan path ke file supabaseClient.js benar
+const { getSupabaseClient } = require('../../config/supabase');
 const { getPool } = require('../../config/database');
 
 const demoUsers = [
@@ -49,6 +49,7 @@ async function findUserByIdentifier(identifier) {
 
   // 2. LOGIKA SUPABASE (Tambahkan ini!)
   if (authMode === 'supabase') {
+    const supabase = getSupabaseClient();
     const { data: user, error } = await supabase
       .from('users')
       .select(`
