@@ -124,7 +124,7 @@ async function getPatientRecentActivities(patientId) {
 
        SELECT
          CONCAT('Invoice ', i.status) AS title,
-         CONCAT('Invoice ', i.invoice_no, ' (', FORMAT(i.net_amount, 0), ')') AS description,
+         CONCAT('Invoice ', i.invoice_no, ' (', ROUND(i.net_amount, 0), ')') AS description,
          i.created_at AS activity_at
        FROM invoices i
        JOIN encounters e ON e.id = i.encounter_id
