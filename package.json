@@ -17,7 +17,7 @@
     "express-mysql-session": "^3.0.3",
     "express-session": "^1.18.1",
     "mysql2": "^3.11.5",
-    "pg": "^8.13.1"
+    "pg": "8.19.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"
