@@ -5,11 +5,24 @@ let postgresPool;
 let activePool;
 
 function getDatabaseMode() {
+  const hasPostgresEnv = Boolean(
+    process.env.SUPABASE_DB_URL ||
+      process.env.SUPABASE_DATABASE_URL ||
+      process.env.DATABASE_URL ||
+      process.env.SUPABASE_DB_HOST
+  );
+  const hasSupabaseApiEnv = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
+
   const explicit = (process.env.DB_MODE || '').toLowerCase();
   if (explicit === 'mysql' || explicit === 'supabase' || explicit === 'postgres') return explicit;
 
   const authMode = (process.env.AUTH_MODE || '').toLowerCase();
-  return authMode === 'supabase' ? 'supabase' : 'mysql';
+  if (authMode === 'supabase' || authMode === 'postgres') return 'supabase';
+  if (authMode === 'db' || authMode === 'mysql') return 'mysql';
+
+  // Auto-detect Supabase/Postgres in production-like envs even when AUTH_MODE is missing.
+  if (hasPostgresEnv || hasSupabaseApiEnv) return 'supabase';
+  return 'mysql';
 }
 
 function getMysqlConfig() {
@@ -55,12 +68,24 @@ function getPostgresConfig() {
     };
   }
 
+  const host = process.env.SUPABASE_DB_HOST || '';
+  const port = Number(process.env.SUPABASE_DB_PORT || 5432);
+  const user = process.env.SUPABASE_DB_USER || '';
+  const password = process.env.SUPABASE_DB_PASSWORD || '';
+  const database = process.env.SUPABASE_DB_NAME || '';
+
+  if (!host || !user || !password || !database) {
+    throw new Error(
+      "Supabase DB mode requires DATABASE_URL/SUPABASE_DB_URL or full SUPABASE_DB_* credentials. Refusing fallback to local MySQL."
+    );
+  }
+
   return {
-    host: process.env.SUPABASE_DB_HOST || process.env.DB_HOST || '127.0.0.1',
-    port: Number(process.env.SUPABASE_DB_PORT || process.env.DB_PORT || 5432),
-    user: process.env.SUPABASE_DB_USER || process.env.DB_USER || 'postgres',
-    password: process.env.SUPABASE_DB_PASSWORD || process.env.DB_PASSWORD || '',
-    database: process.env.SUPABASE_DB_NAME || process.env.DB_NAME || 'postgres',
+    host,
+    port,
+    user,
+    password,
+    database,
     max: Number(process.env.DB_CONNECTION_LIMIT || 10),
     idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT_MS || 30000),
     connectionTimeoutMillis: Number(process.env.DB_CONNECT_TIMEOUT_MS || 10000),
