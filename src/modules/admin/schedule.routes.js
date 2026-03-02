@@ -13,6 +13,7 @@ const {
 
 const router = express.Router();
 
+router.get('/templates/dashboard-admin/schedule-ward-management', requireAuth, allowRoles('admin'), renderScheduleWard);
 router.get('/templates/dashboard-admin/schedule-ward-management.html', requireAuth, allowRoles('admin'), renderScheduleWard);
 router.post('/admin/schedule/shifts', requireAuth, allowRoles('admin'), handleCreateShift);
 router.post('/admin/schedule/shifts/:id/delete', requireAuth, allowRoles('admin'), handleDeleteShift);

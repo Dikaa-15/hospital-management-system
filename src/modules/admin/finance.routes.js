@@ -9,6 +9,7 @@ const {
 
 const router = express.Router();
 
+router.get('/templates/dashboard-admin/financial-management', requireAuth, allowRoles('admin'), renderFinanceDashboard);
 router.get('/templates/dashboard-admin/financial-management.html', requireAuth, allowRoles('admin'), renderFinanceDashboard);
 router.post('/admin/finance/payments', requireAuth, allowRoles('admin'), handleCreatePayment);
 router.post('/admin/finance/invoices/:id/status', requireAuth, allowRoles('admin'), handleInvoiceStatus);

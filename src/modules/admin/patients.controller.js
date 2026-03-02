@@ -50,7 +50,7 @@ async function handleCreatePatient(req, res) {
   const firstName = (req.body.first_name || '').trim();
   const dateOfBirth = (req.body.date_of_birth || '').trim();
   if (!firstName || !dateOfBirth) {
-    return res.redirect('/templates/dashboard-admin/patient-directory.html?error=First%20name%20and%20date%20of%20birth%20are%20required');
+    return res.redirect('/templates/dashboard-admin/patient-directory?error=First%20name%20and%20date%20of%20birth%20are%20required');
   }
 
   try {
@@ -69,9 +69,9 @@ async function handleCreatePatient(req, res) {
       insuranceNumber: (req.body.insurance_number || '').trim()
     });
 
-    return res.redirect('/templates/dashboard-admin/patient-directory.html?flash=Patient created');
+    return res.redirect('/templates/dashboard-admin/patient-directory?flash=Patient created');
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/patient-directory.html?error=${encodeURIComponent(error.message)}`);
+    return res.redirect(`/templates/dashboard-admin/patient-directory?error=${encodeURIComponent(error.message)}`);
   }
 }
 
@@ -80,7 +80,7 @@ async function handleUpdatePatient(req, res) {
   const firstName = (req.body.first_name || '').trim();
   const dateOfBirth = (req.body.date_of_birth || '').trim();
   if (!firstName || !dateOfBirth) {
-    return res.redirect(`/templates/dashboard-admin/patient-directory.html?error=First%20name%20and%20date%20of%20birth%20are%20required&edit=${patientId}`);
+    return res.redirect(`/templates/dashboard-admin/patient-directory?error=First%20name%20and%20date%20of%20birth%20are%20required&edit=${patientId}`);
   }
 
   try {
@@ -98,9 +98,9 @@ async function handleUpdatePatient(req, res) {
       insuranceNumber: (req.body.insurance_number || '').trim()
     });
 
-    return res.redirect(`/templates/dashboard-admin/patient-directory.html?flash=Patient updated&edit=${patientId}`);
+    return res.redirect(`/templates/dashboard-admin/patient-directory?flash=Patient updated&edit=${patientId}`);
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/patient-directory.html?error=${encodeURIComponent(error.message)}&edit=${patientId}`);
+    return res.redirect(`/templates/dashboard-admin/patient-directory?error=${encodeURIComponent(error.message)}&edit=${patientId}`);
   }
 }
 
@@ -110,9 +110,9 @@ async function handlePatientStatus(req, res) {
 
   try {
     await setPatientActiveState(patientId, nextStatus);
-    return res.redirect('/templates/dashboard-admin/patient-directory.html?flash=Patient status updated');
+    return res.redirect('/templates/dashboard-admin/patient-directory?flash=Patient status updated');
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/patient-directory.html?error=${encodeURIComponent(error.message)}`);
+    return res.redirect(`/templates/dashboard-admin/patient-directory?error=${encodeURIComponent(error.message)}`);
   }
 }
 

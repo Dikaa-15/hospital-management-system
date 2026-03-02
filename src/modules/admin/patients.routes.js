@@ -10,6 +10,7 @@ const {
 
 const router = express.Router();
 
+router.get('/templates/dashboard-admin/patient-directory', requireAuth, allowRoles('admin'), renderPatientDirectory);
 router.get('/templates/dashboard-admin/patient-directory.html', requireAuth, allowRoles('admin'), renderPatientDirectory);
 router.post('/admin/patients', requireAuth, allowRoles('admin'), handleCreatePatient);
 router.post('/admin/patients/:id/update', requireAuth, allowRoles('admin'), handleUpdatePatient);

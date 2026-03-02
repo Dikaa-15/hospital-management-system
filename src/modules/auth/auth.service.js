@@ -3,7 +3,7 @@ const { getPool } = require('../../config/database');
 
 const demoUsers = [
   {
-    id: 'demo-admin',
+    id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     username: 'admin@gmail.com',
     email: 'admin@gmail.com',
     password: 'password',
@@ -11,7 +11,7 @@ const demoUsers = [
     role: 'admin'
   },
   {
-    id: 'demo-doctor',
+    id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     username: 'docter@gmail.com',
     email: 'docter@gmail.com',
     password: 'password',
@@ -19,7 +19,7 @@ const demoUsers = [
     role: 'doctor'
   },
   {
-    id: 'demo-patient',
+    id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
     username: 'patient@gmail.com',
     email: 'patient@gmail.com',
     password: 'password',
@@ -27,7 +27,7 @@ const demoUsers = [
     role: 'patient'
   },
   {
-    id: 'demo-pharmacist',
+    id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
     username: 'pharmacist@gmail.com',
     email: 'pharmacist@gmail.com',
     password: 'password',

@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <% if (typeof baseHref === 'string' && baseHref) { %>
+    <base href="<%= baseHref %>">
+    <% } %>
     <title>Schedule - MedCore HMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -332,9 +336,82 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
+
+        .hms-swal-popup {
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.14);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .hms-swal-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            text-align: left;
+        }
+
+        .hms-swal-html {
+            margin: 0;
+            padding: 1rem 1.25rem 0.5rem 1.25rem;
+            text-align: left;
+        }
+
+        .hms-swal-actions {
+            margin: 0;
+            padding: 1rem 1.25rem 1.25rem 1.25rem;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            width: 100%;
+        }
+
+        .hms-swal-confirm {
+            background: #4ade80;
+            color: #166534;
+            border: 0;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            padding: 0.625rem 1rem;
+        }
+
+        .hms-swal-cancel {
+            background: #ffffff;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.625rem 1rem;
+        }
+
+        .hms-swal-input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.625rem 0.75rem;
+            font-size: 0.875rem;
+            color: #0f172a;
+            background: #ffffff;
+        }
+
+        .hms-swal-input:focus {
+            outline: none;
+            border-color: #4ade80;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
+    <%
+      const doctorName = user?.fullName || [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() || 'Doctor';
+      const doctorRole = user?.role || 'doctor';
+      const doctorInitials = doctorName.split(' ').map((s) => s.charAt(0)).join('').slice(0, 2).toUpperCase() || 'DR';
+    %>
     <div class="flex min-h-screen">
         <!-- Sidebar -->
         <aside class="w-20 lg:w-64 bg-white border-r border-slate-200 flex flex-col fixed h-full z-30">
@@ -352,43 +429,37 @@
 
             <!-- Navigation -->
             <nav class="flex-1 p-3 lg:p-4 space-y-1">
-                <a href="dashboard.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Dashboard">
+                <a href="/dashboard" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Dashboard">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
                     <span class="hidden lg:block font-medium">Dashboard</span>
                 </a>
-                <a href="patiensts.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Patients">
+                <a href="/doctor/patients" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Patients">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
                     <span class="hidden lg:block font-medium">Patients</span>
                 </a>
-                <a href="appointments.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Appointments">
+                <a href="/doctor/appointments" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Appointments">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <span class="hidden lg:block font-medium">Appointments</span>
                 </a>
-                <a href="schedules.html" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Schedule" aria-current="page">
+                <a href="/doctor/schedules" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Schedule" aria-current="page">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <span class="hidden lg:block font-medium">Schedule</span>
                 </a>
-                <a href="chats.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Messages">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    </svg>
-                    <span class="hidden lg:block font-medium">Messages</span>
-                </a>
-                <a href="reports.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Reports">
+                <a href="/doctor/reports" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Reports">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                     <span class="hidden lg:block font-medium">Reports</span>
                 </a>
-                <a href="settings.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Settings">
+                <a href="/templates/dashboard-docter/settings" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Settings">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -401,11 +472,11 @@
             <div class="p-4 border-t border-slate-200">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                        DR
+                        <%= doctorInitials %>
                     </div>
                     <div class="hidden lg:block flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-slate-900 truncate">Dr. Rebecca</p>
-                        <p class="text-xs text-slate-500 truncate">Cardiologist</p>
+                        <p class="text-sm font-semibold text-slate-900 truncate"><%= doctorName %></p>
+                        <p class="text-xs text-slate-500 truncate"><%= doctorRole %></p>
                     </div>
                 </div>
             </div>
@@ -444,6 +515,9 @@
             <div class="flex">
                 <!-- Calendar Content -->
                 <div class="flex-1 p-6 lg:p-8">
+                    <% if (typeof pageError !== 'undefined' && pageError) { %>
+                    <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><%= pageError %></div>
+                    <% } %>
                     <!-- Calendar Controls -->
                     <div class="flex items-center justify-between mb-6 animate-fade-in-up">
                         <div class="flex items-center gap-2">
@@ -460,7 +534,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
                             </button>
-                            <h2 class="text-lg font-bold text-slate-900 ml-2" id="weekRange">June 10 - 16, 2024</h2>
+                            <h2 class="text-lg font-bold text-slate-900 ml-2" id="weekRange">-</h2>
                         </div>
                         <div class="view-toggle flex items-center bg-slate-100 rounded-xl p-1">
                             <div class="view-toggle-indicator" id="toggleIndicator"></div>
@@ -526,8 +600,8 @@
                                 <span class="text-xs text-green-600 font-medium">Live</span>
                             </div>
                         </div>
-                        <p class="text-3xl font-bold text-slate-900" id="liveTime">10:45</p>
-                        <p class="text-sm text-slate-500 mt-1" id="liveDate">Saturday, June 15, 2024</p>
+                        <p class="text-3xl font-bold text-slate-900" id="liveTime">--:--</p>
+                        <p class="text-sm text-slate-500 mt-1" id="liveDate">-</p>
                     </div>
 
                     <!-- Upcoming Duty -->
@@ -623,7 +697,7 @@
 
                     <!-- Mini Calendar -->
                     <div class="animate-fade-in-up stagger-4">
-                        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">June 2024</h3>
+                        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3" id="miniCalendarTitle">-</h3>
                         <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200">
                             <div class="grid grid-cols-7 gap-1 text-center mb-2">
                                 <span class="text-xs text-slate-400 font-medium">S</span>
@@ -660,48 +734,29 @@
                 <!-- Content will be populated dynamically -->
             </div>
             <div class="flex gap-3 mt-6">
-                <button class="flex-1 btn-secondary px-4 py-2.5 rounded-xl text-sm font-semibold focus-ring">Delete</button>
+                <button class="flex-1 btn-secondary px-4 py-2.5 rounded-xl text-sm font-semibold focus-ring" id="deleteShiftBtn">Delete</button>
                 <button class="flex-1 btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold focus-ring" id="editShiftBtn">Edit Shift</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Schedule Data
-        const scheduleBlocks = [
-            // Monday
-            { id: 1, day: 0, startHour: 8, endHour: 12, type: 'practice', title: 'Outpatient Clinic', location: 'Room 201', patientCount: 8 },
-            { id: 2, day: 0, startHour: 14, endHour: 17, type: 'practice', title: 'Cardiology Ward Rounds', location: 'Floor 4', patientCount: 12 },
-            
-            // Tuesday
-            { id: 3, day: 1, startHour: 9, endHour: 11, type: 'surgery', title: 'CABG Surgery', location: 'OR 3', patientName: 'James Wilson', duration: '3h' },
-            { id: 4, day: 1, startHour: 14, endHour: 16, type: 'vip', title: 'VIP Consultation', location: 'Private Suite', patientName: 'Confidential' },
-            { id: 5, day: 1, startHour: 16, endHour: 17, type: 'meeting', title: 'Department Meeting', location: 'Conference Room A' },
-            
-            // Wednesday
-            { id: 6, day: 2, startHour: 8, endHour: 12, type: 'practice', title: 'ECG Lab', location: 'Room 105', patientCount: 15 },
-            { id: 7, day: 2, startHour: 13, endHour: 14, type: 'break', title: 'Lunch Break', location: '' },
-            { id: 8, day: 2, startHour: 14, endHour: 18, type: 'practice', title: 'Follow-up Clinic', location: 'Room 201', patientCount: 10 },
-            
-            // Thursday
-            { id: 9, day: 3, startHour: 9, endHour: 12, type: 'surgery', title: 'Angioplasty', location: 'Cath Lab', patientName: 'Robert Brown', duration: '2h' },
-            { id: 10, day: 3, startHour: 14, endHour: 17, type: 'practice', title: 'Consultations', location: 'Room 302', patientCount: 6 },
-            
-            // Friday
-            { id: 11, day: 4, startHour: 8, endHour: 13, type: 'practice', title: 'General Clinic', location: 'Room 201', patientCount: 12 },
-            { id: 12, day: 4, startHour: 15, endHour: 16, type: 'meeting', title: 'Case Review', location: 'Conference Room B' },
-            
-            // Saturday (Today)
-            { id: 13, day: 5, startHour: 9, endHour: 12, type: 'practice', title: 'Morning Rounds', location: 'ICU Ward, Floor 3', patientCount: 8 },
-            { id: 14, day: 5, startHour: 14, endHour: 18, type: 'practice', title: 'ICU Duty', location: 'ICU Ward, Floor 3', patientCount: 6 },
-            
-            // Sunday
-            { id: 15, day: 6, startHour: 10, endHour: 12, type: 'vip', title: 'Emergency Consultation', location: 'VIP Wing', patientName: 'Scheduled' },
-        ];
+        const csrfToken = '<%= csrfToken %>';
+        const serverTodayYmd = '<%= typeof todayYmd === "string" ? todayYmd : "" %>';
+        const scheduleBlocks = <%- JSON.stringify(scheduleData || []) %>;
 
         // State
+        function parseYmd(value) {
+            if (!value) return null;
+            const [y, m, d] = String(value).split('-').map(Number);
+            if (!y || !m || !d) return null;
+            return new Date(y, m - 1, d);
+        }
+
+        const fallbackToday = parseYmd(serverTodayYmd) || new Date();
+        const firstShiftDate = scheduleBlocks.length ? parseYmd(scheduleBlocks[0].shiftDate) : null;
         let currentView = 'week';
-        let currentWeekStart = new Date();
+        let currentWeekStart = new Date(firstShiftDate || fallbackToday);
         let selectedBlock = null;
         const HOUR_HEIGHT = 60;
         const START_HOUR = 7;
@@ -717,15 +772,31 @@
         const modalContent = document.getElementById('modalContent');
         const modalTitle = document.getElementById('modalTitle');
         const toggleIndicator = document.getElementById('toggleIndicator');
+        const addScheduleBtn = document.getElementById('addScheduleBtn');
+        const deleteShiftBtn = document.getElementById('deleteShiftBtn');
+        const editShiftBtn = document.getElementById('editShiftBtn');
 
         // Initialize week
-        currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + 1); // Start from Monday
+        currentWeekStart.setDate(currentWeekStart.getDate() - (currentWeekStart.getDay() === 0 ? 6 : currentWeekStart.getDay() - 1)); // Start from Monday
+        currentWeekStart.setHours(0, 0, 0, 0);
 
         // Helper Functions
         function formatHour(hour) {
             const period = hour >= 12 ? 'PM' : 'AM';
             const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
             return `${displayHour}:00 ${period}`;
+        }
+
+        function getDateStr(date) {
+            return date.toISOString().slice(0, 10);
+        }
+
+        function getBlockDayIndex(block, weekStart) {
+            if (!block.shiftDate) return -1;
+            const blockDate = new Date(`${block.shiftDate}T00:00:00`);
+            const start = new Date(weekStart);
+            start.setHours(0, 0, 0, 0);
+            return Math.round((blockDate.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
         }
 
         function getBlockClass(type) {
@@ -753,7 +824,7 @@
         // Render Day Headers
         function renderDayHeaders() {
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            const today = new Date();
+            const today = new Date(fallbackToday);
             today.setHours(0, 0, 0, 0);
             
             dayHeaders.innerHTML = days.map((day, index) => {
@@ -780,7 +851,7 @@
 
         // Render Time Grid
         function renderTimeGrid() {
-            const today = new Date();
+            const today = new Date(fallbackToday);
             today.setHours(0, 0, 0, 0);
             
             let html = '';
@@ -812,7 +883,7 @@
                 }
                 
                 // Schedule blocks for this day
-                const dayBlocks = scheduleBlocks.filter(b => b.day === day);
+                const dayBlocks = scheduleBlocks.filter((b) => getBlockDayIndex(b, currentWeekStart) === day);
                 dayBlocks.forEach(block => {
                     const top = (block.startHour - START_HOUR) * HOUR_HEIGHT;
                     const height = (block.endHour - block.startHour) * HOUR_HEIGHT;
@@ -843,7 +914,7 @@
             
             // Add click handlers to blocks
             document.querySelectorAll('.schedule-block').forEach(block => {
-                block.addEventListener('click', () => openBlockModal(parseInt(block.dataset.id)));
+                block.addEventListener('click', () => openBlockModal(block.dataset.id));
             });
             
             // Update current time line
@@ -875,7 +946,7 @@
 
         // Open block modal
         function openBlockModal(blockId) {
-            selectedBlock = scheduleBlocks.find(b => b.id === blockId);
+            selectedBlock = scheduleBlocks.find((b) => String(b.id) === String(blockId));
             if (!selectedBlock) return;
             
             modalTitle.textContent = selectedBlock.title;
@@ -892,14 +963,24 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
+                            <p class="text-xs text-slate-500 mb-1">Shift</p>
+                            <p class="text-sm font-semibold text-slate-900">${selectedBlock.shiftType || '-'}</p>
+                        </div>
+                        <div>
                             <p class="text-xs text-slate-500 mb-1">Time</p>
                             <p class="text-sm font-semibold text-slate-900">${formatHour(selectedBlock.startHour)} - ${formatHour(selectedBlock.endHour)}</p>
                         </div>
-                        <div>
+                        <div class="col-span-2">
                             <p class="text-xs text-slate-500 mb-1">Location</p>
                             <p class="text-sm font-semibold text-slate-900">${selectedBlock.location || '-'}</p>
                         </div>
                     </div>
+                    ${selectedBlock.shiftDate ? `
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1">Date</p>
+                            <p class="text-sm font-semibold text-slate-900">${selectedBlock.shiftDate}</p>
+                        </div>
+                    ` : ''}
                     ${selectedBlock.patientCount ? `
                         <div>
                             <p class="text-xs text-slate-500 mb-1">Patients Scheduled</p>
@@ -924,14 +1005,197 @@
             selectedBlock = null;
         }
 
+        async function postForm(url, payload) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                    'x-csrf-token': csrfToken
+                },
+                body: new URLSearchParams(payload)
+            });
+            const json = await res.json().catch(() => ({ ok: false, message: 'Request failed' }));
+            if (!res.ok || !json.ok) throw new Error(json.message || 'Request failed');
+            return json;
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        async function openCreateShiftModal() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Add Schedule',
+                html: `
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Date</label>
+                            <input id="swal_shift_date" type="date" class="hms-swal-input">
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Shift Type</label>
+                            <select id="swal_shift_type" class="hms-swal-input">
+                                <option value="Morning">Morning</option>
+                                <option value="Afternoon">Afternoon</option>
+                                <option value="Night">Night</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Department</label>
+                            <input id="swal_department" class="hms-swal-input" placeholder="Cardiology / ICU / etc">
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Notes</label>
+                            <input id="swal_notes" class="hms-swal-input" placeholder="Room/location">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+                confirmButtonText: 'Create',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'hms-swal-popup',
+                    title: 'hms-swal-title',
+                    htmlContainer: 'hms-swal-html',
+                    actions: 'hms-swal-actions',
+                    confirmButton: 'hms-swal-confirm',
+                    cancelButton: 'hms-swal-cancel'
+                },
+                preConfirm: () => {
+                    const shift_date = document.getElementById('swal_shift_date').value;
+                    const shift_type = document.getElementById('swal_shift_type').value;
+                    if (!shift_date || !shift_type) {
+                        Swal.showValidationMessage('Date and shift type are required');
+                        return null;
+                    }
+                    return {
+                        shift_date,
+                        shift_type,
+                        department: document.getElementById('swal_department').value.trim(),
+                        notes: document.getElementById('swal_notes').value.trim()
+                    };
+                }
+            });
+            if (!formValues) return;
+            try {
+                await postForm('/doctor/schedules', formValues);
+                await Swal.fire({ icon: 'success', title: 'Created', text: 'Shift created' });
+                window.location.reload();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Failed', text: error.message });
+            }
+        }
+
+        async function openEditShiftModal() {
+            if (!selectedBlock) {
+                Swal.fire({ icon: 'info', title: 'Select a shift first' });
+                return;
+            }
+
+            const { value: formValues } = await Swal.fire({
+                title: 'Edit Shift',
+                html: `
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Date</label>
+                            <input id="swal_shift_date" type="date" class="hms-swal-input" value="${escapeHtml(selectedBlock.shiftDate || '')}">
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Shift Type</label>
+                            <select id="swal_shift_type" class="hms-swal-input">
+                                <option value="Morning" ${selectedBlock.shiftType === 'Morning' ? 'selected' : ''}>Morning</option>
+                                <option value="Afternoon" ${selectedBlock.shiftType === 'Afternoon' ? 'selected' : ''}>Afternoon</option>
+                                <option value="Night" ${selectedBlock.shiftType === 'Night' ? 'selected' : ''}>Night</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Department</label>
+                            <input id="swal_department" class="hms-swal-input" placeholder="Cardiology / ICU / etc" value="${escapeHtml(selectedBlock.department || '')}">
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Notes</label>
+                            <input id="swal_notes" class="hms-swal-input" placeholder="Room/location" value="${escapeHtml(selectedBlock.notes || selectedBlock.location || '')}">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+                confirmButtonText: 'Save',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'hms-swal-popup',
+                    title: 'hms-swal-title',
+                    htmlContainer: 'hms-swal-html',
+                    actions: 'hms-swal-actions',
+                    confirmButton: 'hms-swal-confirm',
+                    cancelButton: 'hms-swal-cancel'
+                },
+                preConfirm: () => {
+                    const shift_date = document.getElementById('swal_shift_date').value;
+                    const shift_type = document.getElementById('swal_shift_type').value;
+                    if (!shift_date || !shift_type) {
+                        Swal.showValidationMessage('Date and shift type are required');
+                        return null;
+                    }
+                    return {
+                        shift_date,
+                        shift_type,
+                        department: document.getElementById('swal_department').value.trim(),
+                        notes: document.getElementById('swal_notes').value.trim()
+                    };
+                }
+            });
+
+            if (!formValues) return;
+            try {
+                await postForm(`/doctor/schedules/${selectedBlock.id}/update`, formValues);
+                closeModal();
+                await Swal.fire({ icon: 'success', title: 'Updated', text: 'Shift updated' });
+                window.location.reload();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Failed', text: error.message });
+            }
+        }
+
+        async function onDeleteShift() {
+            if (!selectedBlock) return;
+            const confirm = await Swal.fire({
+                icon: 'warning',
+                title: 'Delete shift?',
+                text: `${selectedBlock.title} on ${selectedBlock.shiftDate} will be removed.`,
+                showCancelButton: true,
+                confirmButtonText: 'Delete'
+            });
+            if (!confirm.isConfirmed) return;
+            try {
+                await postForm(`/doctor/schedules/${selectedBlock.id}/delete`, {});
+                closeModal();
+                await Swal.fire({ icon: 'success', title: 'Deleted', text: 'Shift deleted' });
+                window.location.reload();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Failed', text: error.message });
+            }
+        }
+
         // Render mini calendar
         function renderMiniCalendar() {
             const container = document.getElementById('miniCalendar');
-            const today = new Date();
+            const titleEl = document.getElementById('miniCalendarTitle');
+            const monthAnchor = new Date(currentWeekStart);
+            const today = new Date(fallbackToday);
             today.setHours(0, 0, 0, 0);
-            
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+            const firstDay = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 1);
+            const lastDay = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 0);
+            if (titleEl) {
+                titleEl.textContent = monthAnchor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            }
             
             let html = '';
             
@@ -942,12 +1206,11 @@
             
             // Days of the month
             for (let day = 1; day <= lastDay.getDate(); day++) {
-                const date = new Date(today.getFullYear(), today.getMonth(), day);
+                const date = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), day);
                 const isToday = date.toDateString() === today.toDateString();
                 const hasEvent = scheduleBlocks.some(b => {
-                    const blockDate = new Date(currentWeekStart);
-                    blockDate.setDate(currentWeekStart.getDate() + b.day);
-                    return blockDate.toDateString() === date.toDateString();
+                    if (!b.shiftDate) return false;
+                    return b.shiftDate === getDateStr(date);
                 });
                 
                 html += `
@@ -982,20 +1245,23 @@
             currentWeekStart.setDate(currentWeekStart.getDate() - 7);
             renderDayHeaders();
             renderTimeGrid();
+            renderMiniCalendar();
         });
 
         document.getElementById('nextWeek').addEventListener('click', () => {
             currentWeekStart.setDate(currentWeekStart.getDate() + 7);
             renderDayHeaders();
             renderTimeGrid();
+            renderMiniCalendar();
         });
 
         document.getElementById('todayBtn').addEventListener('click', () => {
-            const today = new Date();
+            const today = new Date(fallbackToday);
             currentWeekStart = new Date(today);
-            currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + 1);
+            currentWeekStart.setDate(currentWeekStart.getDate() - (currentWeekStart.getDay() === 0 ? 6 : currentWeekStart.getDay() - 1));
             renderDayHeaders();
             renderTimeGrid();
+            renderMiniCalendar();
         });
 
         document.querySelectorAll('.view-toggle-btn').forEach(btn => {
@@ -1009,6 +1275,9 @@
 
         document.getElementById('closeModal').addEventListener('click', closeModal);
         modalOverlay.addEventListener('click', closeModal);
+        addScheduleBtn.addEventListener('click', openCreateShiftModal);
+        deleteShiftBtn.addEventListener('click', onDeleteShift);
+        editShiftBtn.addEventListener('click', openEditShiftModal);
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !scheduleModal.classList.contains('hidden')) {

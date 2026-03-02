@@ -47,6 +47,13 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased">
+    <%
+      const p = patientData || {};
+      const patientName = p.fullName || user?.fullName || 'Patient';
+      const patientMrn = p.medicalRecordNumber || '-';
+      const records = recordsData || [];
+      const fmtDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    %>
     <div class="flex min-h-screen">
 
         <!-- Sidebar (Patient Portal) -->
@@ -63,23 +70,23 @@
             </div>
 
             <nav class="flex-1 p-3 lg:p-4 space-y-1">
-                <a href="prescriptions.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                <a href="/patient/prescriptions" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     <span class="hidden lg:block">Home</span>
                 </a>
-                <a href="my-appointments.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                <a href="/patient/appointments" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <span class="hidden lg:block">Appointments</span>
                 </a>
-                <a href="medical-records.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-green-50 text-green-700 font-medium" aria-current="page">
+                <a href="/patient/medical-records" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-green-50 text-green-700 font-medium" aria-current="page">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span class="hidden lg:block">Medical Records</span>
                 </a>
-                <a href="billing.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                <a href="/patient/billing" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                     <span class="hidden lg:block">Prescriptions</span>
                 </a>
-                <a href="overview.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                <a href="/patient/overview" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     <span class="hidden lg:block">Billing</span>
                 </a>
@@ -89,8 +96,8 @@
                 <div class="flex items-center gap-3">
                     <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face" alt="User" class="w-10 h-10 rounded-full object-cover">
                     <div class="hidden lg:block flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-slate-900 truncate">Jane Doe</p>
-                        <p class="text-xs text-slate-500">Patient ID: PX-2847</p>
+                        <p class="text-sm font-semibold text-slate-900 truncate"><%= patientName %></p>
+                        <p class="text-xs text-slate-500">Patient ID: <%= patientMrn %></p>
                     </div>
                 </div>
             </div>
@@ -170,90 +177,38 @@
 
                     <!-- Timeline -->
                     <div class="space-y-4">
-                        <div class="bg-white border border-slate-100 rounded-2xl p-5">
-                            <div class="flex items-start justify-between gap-4">
-                                <div class="flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
+                        <% if (records.length) { %>
+                            <% records.forEach((r) => { %>
+                                <div class="bg-white border border-slate-100 rounded-2xl p-5">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="flex items-start gap-4">
+                                            <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs text-slate-500"><%= fmtDate(r.visit_date) %> • <%= r.admission_type || 'Visit' %></p>
+                                                <h3 class="text-lg font-bold text-slate-900"><%= r.diagnosis_label || 'Clinical Follow-up' %></h3>
+                                                <p class="text-sm font-medium text-slate-500 mt-1"><%= r.doctor_name || 'Doctor' %></p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button class="px-3 py-2 rounded-xl text-sm font-semibold border border-slate-100 text-slate-600 hover:text-slate-900">View Summary</button>
+                                            <button class="px-3 py-2 rounded-xl text-sm font-semibold bg-green-400 text-green-900">Download PDF</button>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p class="text-xs text-slate-500">Feb 18, 2026 • CityCare Clinic</p>
-                                        <h3 class="text-lg font-bold text-slate-900">Post-Op Check-up</h3>
-                                        <p class="text-sm font-medium text-slate-500 mt-1">Dr. Aisha Rahman</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button class="px-3 py-2 rounded-xl text-sm font-semibold border border-slate-100 text-slate-600 hover:text-slate-900">View Summary</button>
-                                    <button class="px-3 py-2 rounded-xl text-sm font-semibold bg-green-400 text-green-900">Download PDF</button>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex items-center gap-3 text-xs text-slate-500">
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-50 text-green-700">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>Vitals Normal
-                                </span>
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-50 text-slate-600">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3"/></svg>
-                                    30 min consult
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-slate-100 rounded-2xl p-5">
-                            <div class="flex items-start justify-between gap-4">
-                                <div class="flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-slate-500">Jan 30, 2026 • St. Mary Hospital</p>
-                                        <h3 class="text-lg font-bold text-slate-900">Common Cold</h3>
-                                        <p class="text-sm font-medium text-slate-500 mt-1">Dr. Kevin Huang</p>
+                                    <div class="mt-4 flex items-center gap-3 text-xs text-slate-500">
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-50 text-green-700">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>Diagnosis: <%= r.diagnosis_code %>
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-50 text-slate-600"><%= r.status %></span>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <button class="px-3 py-2 rounded-xl text-sm font-semibold border border-slate-100 text-slate-600 hover:text-slate-900">View Summary</button>
-                                    <button class="px-3 py-2 rounded-xl text-sm font-semibold bg-green-400 text-green-900">Download PDF</button>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex items-center gap-3 text-xs text-slate-500">
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-50 text-green-700">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>Lab Results Updated
-                                </span>
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-50 text-amber-700">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Follow-up in 2 weeks
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-slate-100 rounded-2xl p-5">
-                            <div class="flex items-start justify-between gap-4">
-                                <div class="flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4h14V3M5 7v14h14V7M9 11h6M9 15h6"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-slate-500">Dec 02, 2025 • Northside Imaging</p>
-                                        <h3 class="text-lg font-bold text-slate-900">Radiology Review</h3>
-                                        <p class="text-sm font-medium text-slate-500 mt-1">Dr. Lina Foster</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button class="px-3 py-2 rounded-xl text-sm font-semibold border border-slate-100 text-slate-600 hover:text-slate-900">View Summary</button>
-                                    <button class="px-3 py-2 rounded-xl text-sm font-semibold bg-green-400 text-green-900">Download PDF</button>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex items-center gap-3 text-xs text-slate-500">
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-700">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>MRI Completed
-                                </span>
-                            </div>
-                        </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="bg-white border border-slate-100 rounded-2xl p-6 text-sm text-slate-500">No medical records available.</div>
+                        <% } %>
                     </div>
 
                     <!-- Secure Storage Badge -->
@@ -273,7 +228,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <h2 class="text-lg font-bold text-slate-900">Lab Results Preview</h2>
-                                <p class="text-xs text-slate-500 mt-1">Jan 30, 2026 • St. Mary Hospital</p>
+                                <p class="text-xs text-slate-500 mt-1"><%= records[0] ? `${fmtDate(records[0].visit_date)} • ${records[0].admission_type || "Visit"}` : "-" %></p>
                             </div>
                             <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
                                 <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

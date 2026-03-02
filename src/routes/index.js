@@ -2,6 +2,8 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { requireAuth } = require('../middlewares/auth');
+const { renderDoctorDashboard } = require('../modules/doctor/dashboard.controller');
+const { renderPatientOverview } = require('../modules/patient/dashboard.controller');
 
 const router = express.Router();
 
@@ -11,6 +13,9 @@ router.use(require('../modules/admin/patients.routes'));
 router.use(require('../modules/admin/inventory.routes'));
 router.use(require('../modules/admin/finance.routes'));
 router.use(require('../modules/admin/schedule.routes'));
+router.use(require('../modules/doctor/dashboard.routes'));
+router.use(require('../modules/patient/dashboard.routes'));
+router.use(require('../modules/system/system.routes'));
 
 router.get('/', (req, res) => {
   return res.render('pages/landing-page', {
@@ -29,18 +34,17 @@ router.get('/pricing', (req, res) => {
 
 router.get('/dashboard', requireAuth, (req, res) => {
   const role = req.session.user.role;
+  if (role === 'doctor') {
+    return renderDoctorDashboard(req, res);
+  }
+  if (role === 'patient') {
+    return renderPatientOverview(req, res);
+  }
+
   const viewByRole = {
     admin: {
       view: 'pages/dashboard-admin/dashboard',
       baseHref: '/templates/dashboard-admin/'
-    },
-    doctor: {
-      view: 'pages/dashboard-docter/dashboard',
-      baseHref: '/templates/dashboard-docter/'
-    },
-    patient: {
-      view: 'pages/dashboard-patients/overview',
-      baseHref: '/templates/dashboard-patients/'
     },
     pharmacist: {
       view: 'pages/dashboard-admin/inventory-management',

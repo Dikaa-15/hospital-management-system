@@ -62,7 +62,7 @@ async function handleCreatePayment(req, res) {
   const amountPaid = Number(req.body.amount_paid || 0);
 
   if (!invoiceId || !paymentMethod || amountPaid <= 0) {
-    return res.redirect('/templates/dashboard-admin/financial-management.html?error=Invoice%2C%20payment%20method%2C%20and%20amount%20are%20required');
+    return res.redirect('/templates/dashboard-admin/financial-management?error=Invoice%2C%20payment%20method%2C%20and%20amount%20are%20required');
   }
 
   try {
@@ -73,9 +73,9 @@ async function handleCreatePayment(req, res) {
       recordedBy: req.session.user?.id || null
     });
 
-    return res.redirect(`/templates/dashboard-admin/financial-management.html?flash=Payment%20posted&invoice=${invoiceId}`);
+    return res.redirect(`/templates/dashboard-admin/financial-management?flash=Payment%20posted&invoice=${invoiceId}`);
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/financial-management.html?error=${encodeURIComponent(error.message)}&invoice=${invoiceId}`);
+    return res.redirect(`/templates/dashboard-admin/financial-management?error=${encodeURIComponent(error.message)}&invoice=${invoiceId}`);
   }
 }
 
@@ -84,14 +84,14 @@ async function handleInvoiceStatus(req, res) {
   const status = (req.body.status || '').trim();
   const allowed = new Set(['Draft', 'Unpaid', 'Paid', 'Cancelled']);
   if (!allowed.has(status)) {
-    return res.redirect('/templates/dashboard-admin/financial-management.html?error=Invalid%20invoice%20status');
+    return res.redirect('/templates/dashboard-admin/financial-management?error=Invalid%20invoice%20status');
   }
 
   try {
     await updateInvoiceStatus(invoiceId, status);
-    return res.redirect(`/templates/dashboard-admin/financial-management.html?flash=Invoice%20status%20updated&invoice=${invoiceId}`);
+    return res.redirect(`/templates/dashboard-admin/financial-management?flash=Invoice%20status%20updated&invoice=${invoiceId}`);
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/financial-management.html?error=${encodeURIComponent(error.message)}&invoice=${invoiceId}`);
+    return res.redirect(`/templates/dashboard-admin/financial-management?error=${encodeURIComponent(error.message)}&invoice=${invoiceId}`);
   }
 }
 

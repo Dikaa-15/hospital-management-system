@@ -66,7 +66,7 @@ async function handleCreateItem(req, res) {
   const baseUnit = (req.body.base_unit || '').trim();
 
   if (!itemCode || !itemName || !baseUnit) {
-    return res.redirect('/templates/dashboard-admin/inventory-management.html?error=Item%20code%2C%20name%2C%20and%20base%20unit%20are%20required');
+    return res.redirect('/templates/dashboard-admin/inventory-management?error=Item%20code%2C%20name%2C%20and%20base%20unit%20are%20required');
   }
 
   try {
@@ -79,9 +79,9 @@ async function handleCreateItem(req, res) {
       isActive: req.body.is_active === '1'
     });
 
-    return res.redirect(`/templates/dashboard-admin/inventory-management.html?flash=Item%20created&edit=${created.id}`);
+    return res.redirect(`/templates/dashboard-admin/inventory-management?flash=Item%20created&edit=${created.id}`);
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/inventory-management.html?error=${encodeURIComponent(error.message)}`);
+    return res.redirect(`/templates/dashboard-admin/inventory-management?error=${encodeURIComponent(error.message)}`);
   }
 }
 
@@ -92,7 +92,7 @@ async function handleUpdateItem(req, res) {
   const baseUnit = (req.body.base_unit || '').trim();
 
   if (!itemCode || !itemName || !baseUnit) {
-    return res.redirect(`/templates/dashboard-admin/inventory-management.html?error=Item%20code%2C%20name%2C%20and%20base%20unit%20are%20required&edit=${itemId}`);
+    return res.redirect(`/templates/dashboard-admin/inventory-management?error=Item%20code%2C%20name%2C%20and%20base%20unit%20are%20required&edit=${itemId}`);
   }
 
   try {
@@ -105,9 +105,9 @@ async function handleUpdateItem(req, res) {
       isActive: req.body.is_active === '1'
     });
 
-    return res.redirect(`/templates/dashboard-admin/inventory-management.html?flash=Item%20updated&edit=${itemId}`);
+    return res.redirect(`/templates/dashboard-admin/inventory-management?flash=Item%20updated&edit=${itemId}`);
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/inventory-management.html?error=${encodeURIComponent(error.message)}&edit=${itemId}`);
+    return res.redirect(`/templates/dashboard-admin/inventory-management?error=${encodeURIComponent(error.message)}&edit=${itemId}`);
   }
 }
 
@@ -117,9 +117,9 @@ async function handleItemStatus(req, res) {
 
   try {
     await setItemActiveState(itemId, nextStatus);
-    return res.redirect('/templates/dashboard-admin/inventory-management.html?flash=Item%20status%20updated');
+    return res.redirect('/templates/dashboard-admin/inventory-management?flash=Item%20status%20updated');
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/inventory-management.html?error=${encodeURIComponent(error.message)}`);
+    return res.redirect(`/templates/dashboard-admin/inventory-management?error=${encodeURIComponent(error.message)}`);
   }
 }
 
@@ -130,7 +130,7 @@ async function handleCreateBatch(req, res) {
   const currentQty = Number(req.body.current_qty || 0);
 
   if (!itemId || !batchNumber || !expiryDate) {
-    return res.redirect('/templates/dashboard-admin/inventory-management.html?error=Item%2C%20batch%20number%2C%20and%20expiry%20are%20required');
+    return res.redirect('/templates/dashboard-admin/inventory-management?error=Item%2C%20batch%20number%2C%20and%20expiry%20are%20required');
   }
 
   try {
@@ -141,9 +141,9 @@ async function handleCreateBatch(req, res) {
       expiryDate,
       currentQty
     });
-    return res.redirect(`/templates/dashboard-admin/inventory-management.html?flash=Batch%20created&edit=${itemId}`);
+    return res.redirect(`/templates/dashboard-admin/inventory-management?flash=Batch%20created&edit=${itemId}`);
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/inventory-management.html?error=${encodeURIComponent(error.message)}&edit=${itemId}`);
+    return res.redirect(`/templates/dashboard-admin/inventory-management?error=${encodeURIComponent(error.message)}&edit=${itemId}`);
   }
 }
 

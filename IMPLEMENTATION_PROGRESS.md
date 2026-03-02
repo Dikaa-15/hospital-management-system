@@ -107,6 +107,102 @@
   - Transfer queue (create + status update)
   - Auto-bootstrap tables: `doctor_shifts`, `ward_rooms`, `transfer_queue`
   - Route: `/templates/dashboard-admin/schedule-ward-management.html` + POST endpoints `/admin/schedule/*`, `/admin/wards/*`, `/admin/transfers/*`
+- Doctor dashboard (phase awal) sudah diimplementasikan:
+  - Route khusus role doctor: `/templates/dashboard-docter/dashboard.html`
+  - Data dari DB: metrics, recent patients, today schedule, weekly chart, department overview
+  - Static dummy JS di dashboard doctor diganti dengan server-driven data render
+- Doctor dashboard diselaraskan ulang ke UI template asli (visual parity) sambil tetap server-driven untuk chart/patient/schedule data + logout form.
+- Doctor dashboard sekarang full real-data driven (tanpa angka mock statis):
+  - Profil dokter + spesialisasi dari `users` + `master_specializations`
+  - Revenue/growth dari `invoices` + `encounters`
+  - Completion/beds/critical dari `encounters`
+  - Label tanggal schedule dari server (`todayLabel`)
+- Demo auth ID disamakan dengan UUID user di `sql/seed_dummy_data.sql` agar dashboard tetap menarik data real DB walau `AUTH_MODE=demo`.
+- Doctor Patients page (`/templates/dashboard-docter/patiensts.html` dan `/doctor/patients`) sekarang real-data driven:
+  - List pasien diambil dari encounter terbaru per pasien untuk dokter login
+  - Diagnosa/vitals/notes diambil dari `clinical_diagnoses`, `clinical_vitals`, `clinical_notes`
+  - Stats cards + table meta dihitung dari data real yang dirender server
+- Doctor Patients CRUD implemented:
+  - Create patient dari halaman doctor (otomatis membuat encounter awal agar langsung muncul di directory)
+  - Update patient (nama, DOB, gender, kontak, alamat)
+  - Archive patient (soft delete via `deleted_at`)
+  - Endpoint: `POST /doctor/patients`, `POST /doctor/patients/:id/update`, `POST /doctor/patients/:id/delete`
+  - UI action via SweetAlert modal + CSRF protected fetch
+- Doctor Appointments menu implemented (real data + actions):
+  - Route: `/templates/dashboard-docter/appointments.html` dan `/doctor/appointments`
+  - Data source: `encounters` + `patients` (filtered by doctor login)
+  - Create appointment: `POST /doctor/appointments`
+  - Status action: `POST /doctor/appointments/:id/status` (`start` -> Pemeriksaan, `complete` -> Selesai)
+  - UI date filter/tab tetap template style, sekarang consume data real server
+- Doctor Schedule menu implemented (real data):
+  - Route: `/templates/dashboard-docter/schedules.html` dan `/doctor/schedules`
+  - Data source: `doctor_shifts` (auto-create table if missing)
+  - Create shift: `POST /doctor/schedules`
+  - Update shift: `POST /doctor/schedules/:id/update`
+  - Delete shift: `POST /doctor/schedules/:id/delete`
+  - Calendar blocks now render from DB shift data instead of static mock blocks
+- Doctor Reports menu now real-data driven:
+  - Route: `/templates/dashboard-docter/reports.html` dan `/doctor/reports`
+  - KPI source: `encounters`, `invoices`, `clinical_notes`
+  - Trend chart source: monthly `encounters` grouped by admission type
+  - Report table source: gabungan clinical notes + invoices milik dokter login
+- URL cleanup (no `.html` on menu navigation) implemented:
+  - Doctor sidebar links now use clean endpoints: `/dashboard`, `/doctor/patients`, `/doctor/appointments`, `/doctor/schedules`, `/doctor/reports`
+  - Admin sidebar links now use clean endpoints under `/templates/dashboard-admin/*` (without `.html`)
+  - Patient sidebar links now use clean endpoints under `/templates/dashboard-patients/*` (without `.html`)
+  - Added non-`.html` aliases on admin module routes so data-driven pages tetap lewat controller (bukan fallback template renderer)
+  - Updated admin form/filter/edit links and controller redirects to non-`.html` URLs
+- Auth hardening fix:
+  - CSRF invalid on `POST /login` now redirects back to `/login` with clear error message (no generic 403 page)
+  - RBAC role comparison now normalized (`trim + lowercase`) to avoid false 403 caused by role casing/spacing mismatch
+- Patient dashboard implementation started:
+  - New patient module:
+    - `src/modules/patient/dashboard.service.js`
+    - `src/modules/patient/dashboard.controller.js`
+    - `src/modules/patient/dashboard.routes.js`
+  - Real-data overview route:
+    - `/patient/overview`
+    - `/templates/dashboard-patients/overview` (+ legacy `.html`)
+  - `/dashboard` for role `patient` now uses controller-driven render (no static fallback)
+  - Patient overview now connected to DB for:
+    - profile identity (name + MRN)
+    - latest vitals (heart rate, blood pressure, weight, height)
+    - next appointment (doctor + specialization + date/time)
+    - recent activity timeline (encounter/invoice events)
+- Patient dashboard expansion (real data, no static mock as primary source):
+  - Added controller-driven routes for all patient menus:
+    - `/patient/appointments`
+    - `/patient/medical-records`
+    - `/patient/prescriptions`
+    - `/patient/billing`
+  - Added service queries for:
+    - patient appointments (`encounters + users + specializations`)
+    - medical records (`encounters + clinical_notes + clinical_diagnoses`)
+    - prescriptions view (`encounters + clinical notes/diagnosis as medication instruction source`)
+    - billing summary/history (`invoices + payments + encounters`)
+  - Updated patient EJS pages to consume DB-backed values for identity and core data sections:
+    - `my-appointments.ejs` upcoming/history list from DB
+    - `medical-records.ejs` timeline cards from DB
+    - `prescriptions.ejs` active medication + list from DB
+    - `billing.ejs` summary + payment history table from DB
+- Patient booking flow fixed (My Appointments):
+  - Added endpoint `POST /patient/appointments` to persist new booking into `encounters`
+  - Booking panel now submits doctor/date/time + CSRF token to backend (previously only `alert` mock)
+  - Added server-side validation for selected doctor before insert
+  - Successful booking now redirects back to `/patient/appointments` and appears in real list
+- Patient scheduling enhancement:
+  - Available slots now fetched from real DB via `GET /patient/appointments/slots`
+    - source: `doctor_shifts` (if available) + collision check on existing `encounters`
+    - fallback slot generation from default shift blocks when no shift row exists
+  - Reschedule is now functional end-to-end:
+    - endpoint: `POST /patient/appointments/:id/reschedule`
+    - validates appointment ownership and slot availability
+    - updates `encounters.doctor_id`, `encounters.visit_date`, and resets status to `Antre`
+- Supabase integration baseline:
+  - Added centralized client config: `src/config/supabase.js`
+  - Added compatibility export: `src/supabaseClient.js`
+  - Added admin-only test endpoint: `GET /test-db` (reads table `patients`)
+  - Added env placeholders in `.env.example`: `SUPABASE_URL`, `SUPABASE_ANON_KEY`
 
 ## Next Recommended Steps
 1. Jalankan bootstrap SQL: `sql/phase1_phase2_auth_rbac.sql` lalu `sql/phase2_seed_demo_users.sql`.

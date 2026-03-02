@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <% if (typeof baseHref === 'string' && baseHref) { %>
+    <base href="<%= baseHref %>">
+    <% } %>
     <title>Patients Management - MedCore HMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -263,9 +267,82 @@
         .sidebar-item:hover {
             background: rgba(74, 222, 128, 0.08);
         }
+
+        .hms-swal-popup {
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.14);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .hms-swal-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            text-align: left;
+        }
+
+        .hms-swal-html {
+            margin: 0;
+            padding: 1rem 1.25rem 0.5rem 1.25rem;
+            text-align: left;
+        }
+
+        .hms-swal-actions {
+            margin: 0;
+            padding: 1rem 1.25rem 1.25rem 1.25rem;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            width: 100%;
+        }
+
+        .hms-swal-confirm {
+            background: #4ade80;
+            color: #166534;
+            border: 0;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            padding: 0.625rem 1rem;
+        }
+
+        .hms-swal-cancel {
+            background: #ffffff;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.625rem 1rem;
+        }
+
+        .hms-swal-input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.625rem 0.75rem;
+            font-size: 0.875rem;
+            color: #0f172a;
+            background: #ffffff;
+        }
+
+        .hms-swal-input:focus {
+            outline: none;
+            border-color: #4ade80;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
+    <%
+      const doctorName = user?.fullName || [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() || 'Doctor';
+      const doctorRole = user?.role || 'doctor';
+      const doctorInitials = doctorName.split(' ').map((s) => s.charAt(0)).join('').slice(0, 2).toUpperCase() || 'DR';
+    %>
     <div class="flex min-h-screen">
         <!-- Sidebar -->
         <aside class="w-20 lg:w-64 bg-white border-r border-slate-200 flex flex-col fixed h-full z-30">
@@ -283,43 +360,37 @@
 
             <!-- Navigation -->
             <nav class="flex-1 p-3 lg:p-4 space-y-1">
-                <a href="dashboard.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Dashboard">
+                <a href="/dashboard" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Dashboard">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
                     <span class="hidden lg:block font-medium">Dashboard</span>
                 </a>
-                <a href="patiensts.html" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Patients" aria-current="page">
+                <a href="/doctor/patients" class="nav-item active flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Patients" aria-current="page">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
                     <span class="hidden lg:block font-medium">Patients</span>
                 </a>
-                <a href="appointments.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Appointments">
+                <a href="/doctor/appointments" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Appointments">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <span class="hidden lg:block font-medium">Appointments</span>
                 </a>
-                <a href="schedules.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Schedule">
+                <a href="/doctor/schedules" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Schedule">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <span class="hidden lg:block font-medium">Schedule</span>
                 </a>
-                <a href="chats.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Messages">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    </svg>
-                    <span class="hidden lg:block font-medium">Messages</span>
-                </a>
-                <a href="reports.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Reports">
+                <a href="/doctor/reports" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Reports">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                     <span class="hidden lg:block font-medium">Reports</span>
                 </a>
-                <a href="settings.html" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Settings">
+                <a href="/templates/dashboard-docter/settings" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-green-50 focus-ring" aria-label="Settings">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -332,11 +403,11 @@
             <div class="p-4 border-t border-slate-200">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                        DR
+                        <%= doctorInitials %>
                     </div>
                     <div class="hidden lg:block flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-slate-900 truncate">Dr. Rebecca</p>
-                        <p class="text-xs text-slate-500 truncate">Cardiologist</p>
+                        <p class="text-sm font-semibold text-slate-900 truncate"><%= doctorName %></p>
+                        <p class="text-xs text-slate-500 truncate"><%= doctorRole %></p>
                     </div>
                 </div>
             </div>
@@ -428,6 +499,9 @@
 
             <!-- Patient Table -->
             <div class="px-6 lg:px-8 py-6">
+                <% if (typeof pageError !== 'undefined' && pageError) { %>
+                <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><%= pageError %></div>
+                <% } %>
                 <!-- Stats Row -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <div class="bg-white rounded-2xl p-5 border border-slate-200 animate-fade-in-up stagger-1">
@@ -438,7 +512,7 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-2xl font-bold text-slate-900">2,847</p>
+                                <p class="text-2xl font-bold text-slate-900" id="totalPatientsStat">0</p>
                                 <p class="text-xs text-slate-500">Total Patients</p>
                             </div>
                         </div>
@@ -451,7 +525,7 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-2xl font-bold text-slate-900">312</p>
+                                <p class="text-2xl font-bold text-slate-900" id="inTreatmentStat">0</p>
                                 <p class="text-xs text-slate-500">In Treatment</p>
                             </div>
                         </div>
@@ -464,7 +538,7 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-2xl font-bold text-slate-900">1,892</p>
+                                <p class="text-2xl font-bold text-slate-900" id="recoveredStat">0</p>
                                 <p class="text-xs text-slate-500">Recovered</p>
                             </div>
                         </div>
@@ -477,7 +551,7 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-2xl font-bold text-slate-900">643</p>
+                                <p class="text-2xl font-bold text-slate-900" id="checkupStat">0</p>
                                 <p class="text-xs text-slate-500">Check-ups</p>
                             </div>
                         </div>
@@ -506,7 +580,7 @@
                     
                     <!-- Pagination -->
                     <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                        <p class="text-sm text-slate-500">Showing <span class="font-medium text-slate-900">1-10</span> of <span class="font-medium text-slate-900">2,847</span> patients</p>
+                        <p class="text-sm text-slate-500" id="tableMeta">Showing <span class="font-medium text-slate-900">0</span> of <span class="font-medium text-slate-900">0</span> patients</p>
                         <div class="flex items-center gap-2">
                             <button class="px-3 py-2 text-sm font-medium text-slate-400 bg-slate-100 rounded-lg cursor-not-allowed" disabled>Previous</button>
                             <button class="px-3 py-2 text-sm font-medium text-white bg-green-400 rounded-lg hover:bg-green-500 transition-colors">1</button>
@@ -545,11 +619,11 @@
 
             <!-- Panel Footer -->
             <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex gap-3">
-                <button class="flex-1 btn-secondary px-4 py-2.5 rounded-xl text-sm font-semibold focus-ring">
+                <button id="editPatientBtn" class="flex-1 btn-secondary px-4 py-2.5 rounded-xl text-sm font-semibold focus-ring">
                     Edit Patient
                 </button>
-                <button class="flex-1 btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold focus-ring">
-                    Schedule Appointment
+                <button id="deletePatientBtn" class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors focus-ring">
+                    Archive Patient
                 </button>
             </div>
         </div>
@@ -557,238 +631,8 @@
 
     <script>
         // Patient Data
-        const patients = [
-            {
-                id: 'PX-9920',
-                name: 'Michael Roberts',
-                avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face',
-                age: 45,
-                gender: 'Male',
-                lastVisit: 'Jun 14, 2024',
-                diagnosis: 'Hypertension',
-                status: 'in-treatment',
-                phone: '+1 (555) 234-5678',
-                email: 'm.roberts@email.com',
-                address: '1245 Oak Street, Springfield, IL 62701',
-                bloodType: 'A+',
-                allergies: ['Penicillin', 'Sulfa'],
-                vitals: {
-                    heartRate: [72, 75, 78, 74, 71, 73, 76, 72, 70, 74, 72, 73],
-                    bloodPressure: { systolic: 128, diastolic: 82 },
-                    temperature: 98.6,
-                    weight: 185,
-                    height: '5\'11"'
-                },
-                notes: 'Patient showing improvement with current medication. Blood pressure stable. Continue with Lisinopril 10mg daily. Follow-up in 2 weeks.'
-            },
-            {
-                id: 'PX-8847',
-                name: 'Sarah Johnson',
-                avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face',
-                age: 32,
-                gender: 'Female',
-                lastVisit: 'Jun 13, 2024',
-                diagnosis: 'Cardiac Arrhythmia',
-                status: 'in-treatment',
-                phone: '+1 (555) 345-6789',
-                email: 'sarah.j@email.com',
-                address: '789 Maple Ave, Chicago, IL 60601',
-                bloodType: 'O-',
-                allergies: ['None known'],
-                vitals: {
-                    heartRate: [88, 92, 85, 90, 87, 91, 89, 93, 88, 90, 87, 89],
-                    bloodPressure: { systolic: 118, diastolic: 76 },
-                    temperature: 98.2,
-                    weight: 142,
-                    height: '5\'6"'
-                },
-                notes: 'Irregular heartbeat detected during last ECG. Started on Metoprolol 25mg. Monitoring required. Scheduled for Holter monitor next week.'
-            },
-            {
-                id: 'PX-7653',
-                name: 'James Wilson',
-                avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop&crop=face',
-                age: 58,
-                gender: 'Male',
-                lastVisit: 'Jun 15, 2024',
-                diagnosis: 'Post-Surgery Recovery',
-                status: 'in-treatment',
-                phone: '+1 (555) 456-7890',
-                email: 'j.wilson@email.com',
-                address: '456 Pine Road, Naperville, IL 60540',
-                bloodType: 'B+',
-                allergies: ['Aspirin'],
-                vitals: {
-                    heartRate: [82, 80, 78, 81, 79, 77, 80, 78, 76, 79, 78, 77],
-                    bloodPressure: { systolic: 135, diastolic: 88 },
-                    temperature: 99.1,
-                    weight: 210,
-                    height: '6\'1"'
-                },
-                notes: 'CABG surgery performed on June 10th. Recovery progressing well. Wound healing properly. Pain management on track. Discharge planned for June 18th.'
-            },
-            {
-                id: 'PX-6521',
-                name: 'Emily Davis',
-                avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop&crop=face',
-                age: 28,
-                gender: 'Female',
-                lastVisit: 'Jun 12, 2024',
-                diagnosis: 'Annual Checkup',
-                status: 'recovered',
-                phone: '+1 (555) 567-8901',
-                email: 'emily.davis@email.com',
-                address: '321 Elm Street, Evanston, IL 60201',
-                bloodType: 'AB+',
-                allergies: ['Latex'],
-                vitals: {
-                    heartRate: [68, 70, 69, 71, 68, 70, 69, 72, 70, 69, 68, 70],
-                    bloodPressure: { systolic: 112, diastolic: 72 },
-                    temperature: 98.4,
-                    weight: 135,
-                    height: '5\'4"'
-                },
-                notes: 'Annual checkup completed. All vitals within normal range. Blood work results pending. Recommended to continue current exercise and diet regimen.'
-            },
-            {
-                id: 'PX-5438',
-                name: 'Robert Brown',
-                avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face',
-                age: 67,
-                gender: 'Male',
-                lastVisit: 'Jun 11, 2024',
-                diagnosis: 'Coronary Artery Disease',
-                status: 'in-treatment',
-                phone: '+1 (555) 678-9012',
-                email: 'r.brown@email.com',
-                address: '654 Cedar Lane, Oak Park, IL 60301',
-                bloodType: 'A-',
-                allergies: ['Contrast dye'],
-                vitals: {
-                    heartRate: [76, 78, 80, 77, 79, 81, 78, 76, 77, 79, 78, 80],
-                    bloodPressure: { systolic: 142, diastolic: 92 },
-                    temperature: 98.8,
-                    weight: 195,
-                    height: '5\'10"'
-                },
-                notes: 'Stable on current medication regimen. Cardiac stress test scheduled for next month. Blood pressure slightly elevated - monitoring closely.'
-            },
-            {
-                id: 'PX-4892',
-                name: 'Jennifer Martinez',
-                avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop&crop=face',
-                age: 41,
-                gender: 'Female',
-                lastVisit: 'Jun 10, 2024',
-                diagnosis: 'Hyperlipidemia',
-                status: 'check-up',
-                phone: '+1 (555) 789-0123',
-                email: 'j.martinez@email.com',
-                address: '987 Birch Court, Schaumburg, IL 60173',
-                bloodType: 'O+',
-                allergies: ['None known'],
-                vitals: {
-                    heartRate: [74, 72, 75, 73, 71, 74, 72, 70, 73, 71, 72, 74],
-                    bloodPressure: { systolic: 122, diastolic: 78 },
-                    temperature: 98.5,
-                    weight: 158,
-                    height: '5\'7"'
-                },
-                notes: 'Cholesterol levels improving with Atorvastatin. LDL down to 110 from 145. Continue medication and dietary changes. Recheck lipid panel in 3 months.'
-            },
-            {
-                id: 'PX-3847',
-                name: 'David Lee',
-                avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&h=120&fit=crop&crop=face',
-                age: 52,
-                gender: 'Male',
-                lastVisit: 'Jun 09, 2024',
-                diagnosis: 'Type 2 Diabetes',
-                status: 'in-treatment',
-                phone: '+1 (555) 890-1234',
-                email: 'david.lee@email.com',
-                address: '159 Willow Drive, Arlington Heights, IL 60004',
-                bloodType: 'B-',
-                allergies: ['Metformin rash'],
-                vitals: {
-                    heartRate: [80, 82, 79, 81, 83, 80, 78, 79, 81, 80, 82, 79],
-                    bloodPressure: { systolic: 138, diastolic: 86 },
-                    temperature: 98.7,
-                    weight: 225,
-                    height: '5\'9"'
-                },
-                notes: 'HbA1c improved to 7.2% from 8.1%. Continue Glipizide 5mg BID. Discussed importance of diet and exercise. Referred to diabetes educator.'
-            },
-            {
-                id: 'PX-2756',
-                name: 'Lisa Thompson',
-                avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=120&h=120&fit=crop&crop=face',
-                age: 36,
-                gender: 'Female',
-                lastVisit: 'Jun 08, 2024',
-                diagnosis: 'Migraine',
-                status: 'recovered',
-                phone: '+1 (555) 901-2345',
-                email: 'l.thompson@email.com',
-                address: '753 Spruce Way, Des Plaines, IL 60016',
-                bloodType: 'AB-',
-                allergies: ['Codeine'],
-                vitals: {
-                    heartRate: [70, 68, 72, 69, 71, 70, 68, 69, 71, 70, 72, 69],
-                    bloodPressure: { systolic: 115, diastolic: 74 },
-                    temperature: 98.3,
-                    weight: 148,
-                    height: '5\'5"'
-                },
-                notes: 'Migraine frequency significantly reduced with Sumatriptan. Patient reports good quality of life improvement. Continue current management plan.'
-            },
-            {
-                id: 'PX-1684',
-                name: 'William Anderson',
-                avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=120&h=120&fit=crop&crop=face',
-                age: 71,
-                gender: 'Male',
-                lastVisit: 'Jun 07, 2024',
-                diagnosis: 'Atrial Fibrillation',
-                status: 'in-treatment',
-                phone: '+1 (555) 012-3456',
-                email: 'w.anderson@email.com',
-                address: '357 Ash Boulevard, Mount Prospect, IL 60056',
-                bloodType: 'O-',
-                allergies: ['Warfarin interaction with antibiotics'],
-                vitals: {
-                    heartRate: [95, 102, 98, 100, 97, 99, 101, 98, 96, 99, 97, 100],
-                    bloodPressure: { systolic: 132, diastolic: 84 },
-                    temperature: 98.4,
-                    weight: 178,
-                    height: '5\'11"'
-                },
-                notes: 'Rate control achieved with Metoprolol and Digoxin. INR stable at 2.5. No evidence of stroke symptoms. Continue anticoagulation therapy.'
-            },
-            {
-                id: 'PX-0952',
-                name: 'Amanda White',
-                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&crop=face',
-                age: 25,
-                gender: 'Female',
-                lastVisit: 'Jun 06, 2024',
-                diagnosis: 'Routine Checkup',
-                status: 'recovered',
-                phone: '+1 (555) 123-4567',
-                email: 'a.white@email.com',
-                address: '951 Chestnut Circle, Wheeling, IL 60090',
-                bloodType: 'A+',
-                allergies: ['None known'],
-                vitals: {
-                    heartRate: [66, 68, 65, 67, 69, 66, 68, 67, 65, 66, 68, 67],
-                    bloodPressure: { systolic: 108, diastolic: 70 },
-                    temperature: 98.2,
-                    weight: 128,
-                    height: '5\'3"'
-                },
-                notes: 'Excellent health. All screening tests normal. Discussed preventive care and healthy lifestyle. Next annual checkup in 12 months.'
-            }
-        ];
+        const patients = <%- JSON.stringify(patientsData || []) %>;
+        const csrfToken = '<%= csrfToken %>';
 
         // DOM Elements - initialized after definition
         const patientTable = document.getElementById('patientTable');
@@ -799,6 +643,9 @@
         const searchInput = document.getElementById('searchInput');
         const filterBtn = document.getElementById('filterBtn');
         const filterDropdown = document.getElementById('filterDropdown');
+        const addPatientBtn = document.getElementById('addPatientBtn');
+        const editPatientBtn = document.getElementById('editPatientBtn');
+        const deletePatientBtn = document.getElementById('deletePatientBtn');
 
         // State
         let selectedPatientId = null;
@@ -819,6 +666,16 @@
 
         // Render patient table
         function renderPatientTable(data) {
+            if (!Array.isArray(data) || data.length === 0) {
+                patientTable.innerHTML = `
+                    <tr class="border-t border-slate-100">
+                        <td colspan="6" class="px-6 py-10 text-center text-sm text-slate-500">No patient data found.</td>
+                    </tr>
+                `;
+                updateTableMeta(0, patients.length);
+                return;
+            }
+
             patientTable.innerHTML = data.map((patient, index) => `
                 <tr class="table-row border-t border-slate-100 ${selectedPatientId === patient.id ? 'selected' : ''}" 
                     data-patient-id="${patient.id}"
@@ -828,7 +685,7 @@
                             <img src="${patient.avatar}" alt="${patient.name}" class="w-11 h-11 rounded-full object-cover ring-2 ring-slate-100">
                             <div>
                                 <p class="font-bold text-slate-900">${patient.name}</p>
-                                <p class="text-sm text-slate-500 font-mono">${patient.id}</p>
+                                <p class="text-sm text-slate-500 font-mono">${patient.mrn || patient.id}</p>
                             </div>
                         </div>
                     </td>
@@ -846,9 +703,9 @@
                         <span class="text-sm text-slate-600">${patient.diagnosis}</span>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="status-badge inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${statusStyles[patient.status]}">
+                        <span class="status-badge inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${statusStyles[patient.status] || 'bg-slate-100 text-slate-700'}">
                             <span class="w-1.5 h-1.5 rounded-full ${patient.status === 'in-treatment' ? 'bg-green-500 pulse-dot' : patient.status === 'recovered' ? 'bg-blue-500' : 'bg-amber-500'}"></span>
-                            ${statusLabels[patient.status]}
+                            ${statusLabels[patient.status] || patient.status || 'Unknown'}
                         </span>
                     </td>
                     <td class="px-6 py-4">
@@ -884,10 +741,13 @@
                     openPatientPanel(btn.dataset.patientId);
                 });
             });
+
+            updateTableMeta(data.length, patients.length);
         }
 
         // Generate sparkline
         function generateSparkline(data, color) {
+            if (!Array.isArray(data) || data.length === 0) return '';
             const max = Math.max(...data);
             const min = Math.min(...data);
             const range = max - min || 1;
@@ -919,9 +779,9 @@
                         <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${patient.status === 'in-treatment' ? 'bg-green-400' : patient.status === 'recovered' ? 'bg-blue-400' : 'bg-amber-400'}"></span>
                     </div>
                     <h3 class="text-xl font-bold text-slate-900 mt-4">${patient.name}</h3>
-                    <p class="text-sm text-slate-500 font-mono">${patient.id}</p>
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mt-3 ${statusStyles[patient.status]}">
-                        ${statusLabels[patient.status]}
+                    <p class="text-sm text-slate-500 font-mono">${patient.mrn || patient.id}</p>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mt-3 ${statusStyles[patient.status] || 'bg-slate-100 text-slate-700'}">
+                        ${statusLabels[patient.status] || patient.status || 'Unknown'}
                     </span>
                 </div>
 
@@ -937,7 +797,7 @@
                             </div>
                             <div>
                                 <p class="text-xs text-slate-500">Phone</p>
-                                <p class="text-sm font-medium text-slate-900">${patient.phone}</p>
+                                <p class="text-sm font-medium text-slate-900">${patient.phone || '-'}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
@@ -948,7 +808,7 @@
                             </div>
                             <div>
                                 <p class="text-xs text-slate-500">Email</p>
-                                <p class="text-sm font-medium text-slate-900">${patient.email}</p>
+                                <p class="text-sm font-medium text-slate-900">${patient.email || '-'}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
@@ -960,7 +820,7 @@
                             </div>
                             <div>
                                 <p class="text-xs text-slate-500">Address</p>
-                                <p class="text-sm font-medium text-slate-900">${patient.address}</p>
+                                <p class="text-sm font-medium text-slate-900">${patient.address || '-'}</p>
                             </div>
                         </div>
                     </div>
@@ -1029,7 +889,7 @@
                     <div class="p-3 bg-rose-50 rounded-xl border border-rose-100">
                         <p class="text-xs text-rose-600 font-medium mb-1">Allergies</p>
                         <div class="flex flex-wrap gap-1.5 mt-2">
-                            ${patient.allergies.map(allergy => `
+                            ${(patient.allergies || ['No known allergies']).map(allergy => `
                                 <span class="px-2 py-1 bg-white text-rose-700 text-xs font-medium rounded-md border border-rose-200">${allergy}</span>
                             `).join('')}
                         </div>
@@ -1072,12 +932,211 @@
 
         // Search functionality
         function handleSearch(query) {
+            const q = (query || '').toLowerCase();
             const filtered = patients.filter(patient => 
-                patient.name.toLowerCase().includes(query.toLowerCase()) ||
-                patient.id.toLowerCase().includes(query.toLowerCase()) ||
-                patient.diagnosis.toLowerCase().includes(query.toLowerCase())
+                (patient.name || '').toLowerCase().includes(q) ||
+                (patient.id || '').toLowerCase().includes(q) ||
+                (patient.mrn || '').toLowerCase().includes(q) ||
+                (patient.diagnosis || '').toLowerCase().includes(q)
             );
             renderPatientTable(filtered);
+        }
+
+        function updateTableMeta(showing, total) {
+            const el = document.getElementById('tableMeta');
+            if (el) {
+                el.innerHTML = `Showing <span class="font-medium text-slate-900">${showing}</span> of <span class="font-medium text-slate-900">${total}</span> patients`;
+            }
+        }
+
+        function renderSummaryStats() {
+            const total = patients.length;
+            const inTreatment = patients.filter((p) => p.status === 'in-treatment').length;
+            const recovered = patients.filter((p) => p.status === 'recovered').length;
+            const checkup = patients.filter((p) => p.status === 'check-up').length;
+
+            document.getElementById('totalPatientsStat').textContent = total;
+            document.getElementById('inTreatmentStat').textContent = inTreatment;
+            document.getElementById('recoveredStat').textContent = recovered;
+            document.getElementById('checkupStat').textContent = checkup;
+        }
+
+        function selectedPatient() {
+            return patients.find((p) => p.id === selectedPatientId) || null;
+        }
+
+        async function postForm(url, payload) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                    'x-csrf-token': csrfToken
+                },
+                body: new URLSearchParams(payload)
+            });
+            const json = await res.json().catch(() => ({ ok: false, message: 'Request failed' }));
+            if (!res.ok || !json.ok) {
+                throw new Error(json.message || 'Request failed');
+            }
+            return json;
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function swalThemeConfig(confirmText) {
+            return {
+                showCancelButton: true,
+                focusConfirm: false,
+                buttonsStyling: false,
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'hms-swal-popup',
+                    title: 'hms-swal-title',
+                    htmlContainer: 'hms-swal-html',
+                    actions: 'hms-swal-actions',
+                    confirmButton: 'hms-swal-confirm',
+                    cancelButton: 'hms-swal-cancel'
+                }
+            };
+        }
+
+        function patientFormHtml(patient = {}) {
+            const firstName = escapeHtml((patient.name || '').split(' ')[0] || '');
+            const lastName = escapeHtml((patient.name || '').split(' ').slice(1).join(' '));
+            const dob = escapeHtml(patient.dob || '');
+            const phone = escapeHtml(patient.phone || '');
+            const email = escapeHtml(patient.email || '');
+            const address = escapeHtml(patient.address || '');
+            return `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="sm:col-span-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">First Name *</label>
+                        <input id="swal_first_name" class="hms-swal-input" placeholder="First name" value="${firstName}">
+                    </div>
+                    <div class="sm:col-span-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Last Name</label>
+                        <input id="swal_last_name" class="hms-swal-input" placeholder="Last name" value="${lastName}">
+                    </div>
+                    <div class="sm:col-span-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Date of Birth *</label>
+                        <input id="swal_dob" type="date" class="hms-swal-input" value="${dob}">
+                    </div>
+                    <div class="sm:col-span-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Gender</label>
+                        <select id="swal_gender" class="hms-swal-input">
+                            <option value="">Select gender</option>
+                            <option value="Male" ${patient.gender === 'Male' ? 'selected' : ''}>Male</option>
+                            <option value="Female" ${patient.gender === 'Female' ? 'selected' : ''}>Female</option>
+                            <option value="Other" ${patient.gender === 'Other' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Phone</label>
+                        <input id="swal_phone" class="hms-swal-input" placeholder="Phone number" value="${phone}">
+                    </div>
+                    <div class="sm:col-span-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Email</label>
+                        <input id="swal_email" class="hms-swal-input" placeholder="Email address" value="${email}">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Address</label>
+                        <input id="swal_address" class="hms-swal-input" placeholder="Address" value="${address}">
+                    </div>
+                </div>
+            `;
+        }
+
+        function collectPatientFormValues() {
+            const first_name = document.getElementById('swal_first_name').value.trim();
+            const date_of_birth = document.getElementById('swal_dob').value;
+            if (!first_name || !date_of_birth) {
+                Swal.showValidationMessage('First name and date of birth are required');
+                return null;
+            }
+            return {
+                first_name,
+                last_name: document.getElementById('swal_last_name').value.trim(),
+                date_of_birth,
+                gender: document.getElementById('swal_gender').value,
+                phone_number: document.getElementById('swal_phone').value.trim(),
+                email: document.getElementById('swal_email').value.trim(),
+                address: document.getElementById('swal_address').value.trim()
+            };
+        }
+
+        async function onAddPatient() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Add Patient',
+                html: patientFormHtml(),
+                ...swalThemeConfig('Create'),
+                preConfirm: collectPatientFormValues
+            });
+
+            if (!formValues) return;
+            try {
+                await postForm('/doctor/patients', formValues);
+                await Swal.fire({ icon: 'success', title: 'Created', text: 'Patient has been created' });
+                window.location.reload();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Failed', text: error.message });
+            }
+        }
+
+        async function onEditPatient() {
+            const patient = selectedPatient();
+            if (!patient) {
+                Swal.fire({ icon: 'info', title: 'Select a patient first' });
+                return;
+            }
+
+            const { value: formValues } = await Swal.fire({
+                title: `Edit ${patient.name}`,
+                html: patientFormHtml(patient),
+                ...swalThemeConfig('Save'),
+                preConfirm: collectPatientFormValues
+            });
+
+            if (!formValues) return;
+            try {
+                await postForm(`/doctor/patients/${patient.id}/update`, formValues);
+                await Swal.fire({ icon: 'success', title: 'Updated', text: 'Patient has been updated' });
+                window.location.reload();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Failed', text: error.message });
+            }
+        }
+
+        async function onDeletePatient() {
+            const patient = selectedPatient();
+            if (!patient) {
+                Swal.fire({ icon: 'info', title: 'Select a patient first' });
+                return;
+            }
+
+            const confirm = await Swal.fire({
+                icon: 'warning',
+                title: 'Archive patient?',
+                text: `${patient.name} will be hidden from directory.`,
+                showCancelButton: true,
+                confirmButtonText: 'Archive'
+            });
+            if (!confirm.isConfirmed) return;
+
+            try {
+                await postForm(`/doctor/patients/${patient.id}/delete`, {});
+                await Swal.fire({ icon: 'success', title: 'Archived', text: 'Patient has been archived' });
+                window.location.reload();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Failed', text: error.message });
+            }
         }
 
         // Filter functionality
@@ -1111,7 +1170,7 @@
             const filtered = patients.filter(patient => {
                 return activeFilters.every(f => {
                     if (f.filter === 'status') return patient.status === f.value;
-                    if (f.filter === 'gender') return patient.gender.toLowerCase() === f.value;
+                    if (f.filter === 'gender') return (patient.gender || '').toLowerCase() === f.value;
                     return true;
                 });
             });
@@ -1121,6 +1180,9 @@
         // Event Listeners
         closePanel.addEventListener('click', closePatientPanel);
         panelOverlay.addEventListener('click', closePatientPanel);
+        addPatientBtn.addEventListener('click', onAddPatient);
+        editPatientBtn.addEventListener('click', onEditPatient);
+        deletePatientBtn.addEventListener('click', onDeletePatient);
 
         searchInput.addEventListener('input', (e) => {
             handleSearch(e.target.value);
@@ -1163,6 +1225,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            renderSummaryStats();
             renderPatientTable(patients);
         });
     </script>

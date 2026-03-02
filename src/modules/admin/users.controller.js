@@ -59,7 +59,7 @@ async function handleCreateUser(req, res) {
   const firstName = (req.body.first_name || '').trim();
   const roleId = (req.body.role_id || '').trim();
   if (!firstName || !roleId) {
-    return res.redirect('/templates/dashboard-admin/user-management.html?error=First%20name%20and%20role%20are%20required');
+    return res.redirect('/templates/dashboard-admin/user-management?error=First%20name%20and%20role%20are%20required');
   }
 
   try {
@@ -78,9 +78,9 @@ async function handleCreateUser(req, res) {
       isActive: req.body.is_active === '1'
     });
 
-    return res.redirect('/templates/dashboard-admin/user-management.html?flash=User created');
+    return res.redirect('/templates/dashboard-admin/user-management?flash=User created');
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/user-management.html?error=${encodeURIComponent(error.message)}`);
+    return res.redirect(`/templates/dashboard-admin/user-management?error=${encodeURIComponent(error.message)}`);
   }
 }
 
@@ -89,7 +89,7 @@ async function handleUpdateUser(req, res) {
   const firstName = (req.body.first_name || '').trim();
   const roleId = (req.body.role_id || '').trim();
   if (!firstName || !roleId) {
-    return res.redirect(`/templates/dashboard-admin/user-management.html?error=First%20name%20and%20role%20are%20required&edit=${userId}`);
+    return res.redirect(`/templates/dashboard-admin/user-management?error=First%20name%20and%20role%20are%20required&edit=${userId}`);
   }
 
   try {
@@ -106,9 +106,9 @@ async function handleUpdateUser(req, res) {
       isActive: req.body.is_active === '1'
     });
 
-    return res.redirect(`/templates/dashboard-admin/user-management.html?flash=User updated&edit=${userId}`);
+    return res.redirect(`/templates/dashboard-admin/user-management?flash=User updated&edit=${userId}`);
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/user-management.html?error=${encodeURIComponent(error.message)}&edit=${userId}`);
+    return res.redirect(`/templates/dashboard-admin/user-management?error=${encodeURIComponent(error.message)}&edit=${userId}`);
   }
 }
 
@@ -118,9 +118,9 @@ async function handleToggleStatus(req, res) {
 
   try {
     await setUserStatus(userId, nextStatus);
-    return res.redirect('/templates/dashboard-admin/user-management.html?flash=Status updated');
+    return res.redirect('/templates/dashboard-admin/user-management?flash=Status updated');
   } catch (error) {
-    return res.redirect(`/templates/dashboard-admin/user-management.html?error=${encodeURIComponent(error.message)}`);
+    return res.redirect(`/templates/dashboard-admin/user-management?error=${encodeURIComponent(error.message)}`);
   }
 }
 

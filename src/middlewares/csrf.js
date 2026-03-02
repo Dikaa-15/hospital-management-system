@@ -27,6 +27,11 @@ function csrfProtection(req, res, next) {
     return next();
   }
 
+  // Improve auth UX: expired token on login should return to login page with clear message.
+  if (req.path === '/login') {
+    return res.redirect('/login?error=Session%20expired.%20Please%20try%20again');
+  }
+
   if (req.accepts('html')) {
     return res.status(403).render('partials/forbidden', { title: 'Forbidden' });
   }

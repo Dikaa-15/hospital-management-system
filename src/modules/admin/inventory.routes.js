@@ -11,6 +11,7 @@ const {
 
 const router = express.Router();
 
+router.get('/templates/dashboard-admin/inventory-management', requireAuth, allowRoles('admin', 'pharmacist'), renderInventoryManagement);
 router.get('/templates/dashboard-admin/inventory-management.html', requireAuth, allowRoles('admin', 'pharmacist'), renderInventoryManagement);
 router.post('/admin/inventory/items', requireAuth, allowRoles('admin', 'pharmacist'), handleCreateItem);
 router.post('/admin/inventory/items/:id/update', requireAuth, allowRoles('admin', 'pharmacist'), handleUpdateItem);

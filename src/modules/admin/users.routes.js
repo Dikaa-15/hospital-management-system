@@ -10,6 +10,7 @@ const {
 
 const router = express.Router();
 
+router.get('/templates/dashboard-admin/user-management', requireAuth, allowRoles('admin'), renderUserManagement);
 router.get('/templates/dashboard-admin/user-management.html', requireAuth, allowRoles('admin'), renderUserManagement);
 router.post('/admin/users', requireAuth, allowRoles('admin'), handleCreateUser);
 router.post('/admin/users/:id/update', requireAuth, allowRoles('admin'), handleUpdateUser);

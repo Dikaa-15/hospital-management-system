@@ -34,6 +34,16 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased">
+    <%
+      const p = patientData || {};
+      const patientName = p.fullName || user?.fullName || 'Patient';
+      const patientMrn = p.medicalRecordNumber || '-';
+      const invoices = billingData || [];
+      const summary = billingSummary || { outstanding: 'Rp 0', savings: 'Rp 0', deposit: 'Rp 0' };
+      const detail = selectedInvoice || null;
+      const fmtDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+      const mapStatus = (s) => (s === 'Paid' ? 'Paid' : s === 'Unpaid' ? 'Pending' : s === 'Draft' ? 'Overdue' : s);
+    %>
     <div class="flex min-h-screen">
 
         <!-- Sidebar -->
@@ -49,23 +59,23 @@
                 </div>
             </div>
             <nav class="flex-1 p-3 lg:p-4 space-y-1">
-                <a href="overview.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                <a href="/patient/overview" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     <span class="hidden lg:block">Home</span>
                 </a>
-                <a href="my-appointments.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                <a href="/patient/appointments" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <span class="hidden lg:block">Appointments</span>
                 </a>
-                <a href="medical-records.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                <a href="/patient/medical-records" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span class="hidden lg:block">Medical Records</span>
                 </a>
-                <a href="prescriptions.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
+                <a href="/patient/prescriptions" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 focus-ring">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v6m-3-3h6m7 3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span class="hidden lg:block">Prescriptions</span>
                 </a>
-                <a href="billing.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-green-50 text-green-700 font-medium" aria-current="page">
+                <a href="/patient/billing" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-green-50 text-green-700 font-medium" aria-current="page">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     <span class="hidden lg:block">Billing</span>
                 </a>
@@ -74,8 +84,8 @@
                 <div class="flex items-center gap-3">
                     <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face" alt="User" class="w-10 h-10 rounded-full object-cover">
                     <div class="hidden lg:block flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-slate-900 truncate">Jane Doe</p>
-                        <p class="text-xs text-slate-500">Patient ID: PX-2847</p>
+                        <p class="text-sm font-semibold text-slate-900 truncate"><%= patientName %></p>
+                        <p class="text-xs text-slate-500">Patient ID: <%= patientMrn %></p>
                     </div>
                 </div>
             </div>
@@ -103,7 +113,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
                             <div class="text-xs text-slate-500 uppercase tracking-widest">Total Outstanding</div>
-                            <div class="text-2xl font-bold text-slate-900 mt-3">Rp 1.850.000</div>
+                            <div class="text-2xl font-bold text-slate-900 mt-3"><%= summary.outstanding %></div>
                             <p class="text-xs text-slate-500 mt-2">Includes pending invoices (2)</p>
                             <button class="mt-4 px-4 py-2 rounded-2xl bg-green-400 text-green-900 text-xs font-semibold">Pay All</button>
                         </div>
@@ -116,18 +126,18 @@
                             <p class="text-xs text-slate-500 mt-2">BPJS / Prudential</p>
                             <div class="mt-4 inline-flex items-center gap-2 text-xs text-green-700 bg-green-50 px-3 py-1 rounded-full">
                                 <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                                Savings this month: Rp 620.000
+                                Savings this month: <%= summary.savings %>
                             </div>
                         </div>
                         <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
                             <div class="text-xs text-slate-500 uppercase tracking-widest">Deposit Balance</div>
-                            <div class="text-2xl font-bold text-slate-900 mt-3">Rp 450.000</div>
+                            <div class="text-2xl font-bold text-slate-900 mt-3"><%= summary.deposit %></div>
                             <p class="text-xs text-slate-500 mt-2">Auto-applied on next invoice</p>
                             <div class="mt-4 flex items-center gap-2 text-xs text-slate-500">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6l4 2"/>
                                 </svg>
-                                Updated Feb 20, 2026
+                                Updated <%= detail ? fmtDate(detail.createdAt) : "-" %>
                             </div>
                         </div>
                     </div>
@@ -150,33 +160,23 @@
                                     </tr>
                                 </thead>
                                 <tbody class="text-slate-700">
-                                    <tr class="border-t border-slate-100">
-                                        <td class="py-4 font-semibold text-slate-900">INV-23981</td>
-                                        <td class="py-4">Feb 18, 2026</td>
-                                        <td class="py-4">General Consultation</td>
-                                        <td class="py-4 font-bold text-slate-900">Rp 750.000</td>
-                                        <td class="py-4">
-                                            <span class="px-3 py-1 rounded-full bg-green-400 text-white text-xs font-semibold">Paid</span>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-t border-slate-100">
-                                        <td class="py-4 font-semibold text-slate-900">INV-23872</td>
-                                        <td class="py-4">Feb 10, 2026</td>
-                                        <td class="py-4">Lab Test</td>
-                                        <td class="py-4 font-bold text-slate-900">Rp 450.000</td>
-                                        <td class="py-4">
-                                            <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">Pending</span>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-t border-slate-100">
-                                        <td class="py-4 font-semibold text-slate-900">INV-23715</td>
-                                        <td class="py-4">Jan 30, 2026</td>
-                                        <td class="py-4">Pharmacy Pickup</td>
-                                        <td class="py-4 font-bold text-slate-900">Rp 650.000</td>
-                                        <td class="py-4">
-                                            <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold">Overdue</span>
-                                        </td>
-                                    </tr>
+                                    <% if (invoices.length) { %>
+                                        <% invoices.forEach((inv) => { %>
+                                            <tr class="border-t border-slate-100">
+                                                <td class="py-4 font-semibold text-slate-900"><%= inv.invoice_no %></td>
+                                                <td class="py-4"><%= fmtDate(inv.created_at) %></td>
+                                                <td class="py-4"><%= inv.service_name %></td>
+                                                <td class="py-4 font-bold text-slate-900">Rp <%= Number(inv.net_amount || 0).toLocaleString('id-ID') %></td>
+                                                <td class="py-4">
+                                                    <span class="px-3 py-1 rounded-full text-xs font-semibold <%= mapStatus(inv.status) === 'Paid' ? 'bg-green-400 text-white' : mapStatus(inv.status) === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700' %>"><%= mapStatus(inv.status) %></span>
+                                                </td>
+                                            </tr>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <tr class="border-t border-slate-100">
+                                            <td colspan="5" class="py-6 text-center text-slate-500">No billing records found.</td>
+                                        </tr>
+                                    <% } %>
                                 </tbody>
                             </table>
                         </div>
@@ -189,7 +189,7 @@
                         <div class="flex items-start justify-between">
                             <div>
                                 <h2 class="text-lg font-bold text-slate-900">Invoice Details</h2>
-                                <p class="text-xs text-slate-500 mt-1">INV-23872 • Feb 10, 2026</p>
+                                <p class="text-xs text-slate-500 mt-1"><%= detail ? `${detail.invoiceNo} • ${fmtDate(detail.createdAt)}` : "-" %></p>
                             </div>
                             <div class="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center">
                                 <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,23 +201,23 @@
                         <div class="mt-5 space-y-3 text-sm">
                             <div class="flex items-center justify-between">
                                 <span class="text-slate-500">Doctor Consultation</span>
-                                <span class="font-bold text-slate-900">Rp 250.000</span>
+                                <span class="font-bold text-slate-900"><%= detail ? detail.consultation : "Rp 0" %></span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-slate-500">Lab Fees</span>
-                                <span class="font-bold text-slate-900">Rp 150.000</span>
+                                <span class="font-bold text-slate-900"><%= detail ? detail.lab : "Rp 0" %></span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-slate-500">Medication</span>
-                                <span class="font-bold text-slate-900">Rp 50.000</span>
+                                <span class="font-bold text-slate-900"><%= detail ? detail.medication : "Rp 0" %></span>
                             </div>
                             <div class="flex items-center justify-between border-t border-slate-100 pt-3">
                                 <span class="text-slate-500">Administration</span>
-                                <span class="font-bold text-slate-900">Rp 25.000</span>
+                                <span class="font-bold text-slate-900"><%= detail ? detail.admin : "Rp 0" %></span>
                             </div>
                             <div class="flex items-center justify-between text-base font-bold text-slate-900 pt-2">
                                 <span>Total</span>
-                                <span>Rp 475.000</span>
+                                <span><%= detail ? detail.total : "Rp 0" %></span>
                             </div>
                         </div>
 
