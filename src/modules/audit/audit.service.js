@@ -35,7 +35,6 @@ async function logAuditEvent({ actorUserId = null, action, objectType = null, ob
     const now = Date.now();
     if (now - lastWarnAt > 10000) {
       lastWarnAt = now;
-      console.warn('[audit] failed to persist log:', getErrorMessage(error));
     }
   }
 }
