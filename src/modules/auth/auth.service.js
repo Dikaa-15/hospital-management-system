@@ -79,7 +79,7 @@ async function findUserByIdentifier(identifier) {
             CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) AS full_name, 
             u.password_hash, r.role_name AS role
      FROM users u JOIN roles r ON r.id = u.role_id
-     WHERE u.is_active = 1 AND (u.username = ? OR u.email = ?) LIMIT 1`,
+     WHERE u.is_active = TRUE AND (u.username = ? OR u.email = ?) LIMIT 1`,
     [identifier, identifier]
   );
 

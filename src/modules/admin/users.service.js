@@ -23,10 +23,10 @@ function buildWhere({ q = '', role = '', status = '' }) {
   }
 
   if (status === 'active') {
-    where.push('u.is_active = 1');
+    where.push('u.is_active = TRUE');
   }
   if (status === 'inactive') {
-    where.push('u.is_active = 0');
+    where.push('u.is_active = FALSE');
   }
 
   return {
@@ -66,7 +66,7 @@ async function getRoles() {
 async function getSpecializations() {
   const pool = getPool();
   const [rows] = await pool.execute(
-    'SELECT id, spec_name FROM master_specializations WHERE is_active = 1 ORDER BY spec_name ASC'
+    'SELECT id, spec_name FROM master_specializations WHERE is_active = TRUE ORDER BY spec_name ASC'
   );
   return rows;
 }
@@ -121,7 +121,7 @@ async function createUser(payload) {
       payload.specializationId || null,
       payload.email || null,
       payload.phoneNumber || null,
-      payload.isActive ? 1 : 0
+      Boolean(payload.isActive)
     ]
   );
 
@@ -140,7 +140,7 @@ async function updateUser(id, payload) {
     payload.specializationId || null,
     payload.email || null,
     payload.phoneNumber || null,
-    payload.isActive ? 1 : 0,
+    Boolean(payload.isActive),
     id
   ];
 
@@ -169,7 +169,7 @@ async function updateUser(id, payload) {
 
 async function setUserStatus(id, isActive) {
   const pool = getPool();
-  await pool.execute('UPDATE users SET is_active = ? WHERE id = ?', [isActive ? 1 : 0, id]);
+  await pool.execute('UPDATE users SET is_active = ? WHERE id = ?', [Boolean(isActive), id]);
 }
 
 module.exports = {

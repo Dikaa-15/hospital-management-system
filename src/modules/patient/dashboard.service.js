@@ -301,7 +301,7 @@ async function getDoctorOptionsForBooking() {
      FROM users u
      JOIN roles r ON r.id = u.role_id
      LEFT JOIN master_specializations ms ON ms.id = u.specialization_id
-     WHERE u.is_active = 1 AND LOWER(TRIM(r.role_name)) = 'doctor'
+     WHERE u.is_active = TRUE AND LOWER(TRIM(r.role_name)) = 'doctor'
      ORDER BY u.first_name ASC, u.last_name ASC`
   );
   return rows;

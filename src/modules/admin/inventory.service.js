@@ -33,7 +33,7 @@ async function getInventorySummary() {
   const pool = getPool();
   const [rows] = await pool.execute(
     `SELECT
-      (SELECT COUNT(*) FROM inventory_items WHERE is_active = 1) AS total_items,
+      (SELECT COUNT(*) FROM inventory_items WHERE is_active = TRUE) AS total_items,
       (SELECT COUNT(*)
        FROM inventory_items i
        LEFT JOIN (
@@ -41,7 +41,7 @@ async function getInventorySummary() {
          FROM inventory_batches
          GROUP BY item_id
        ) s ON s.item_id = i.id
-       WHERE i.is_active = 1 AND COALESCE(s.stock, 0) < i.min_stock) AS low_stock_alerts,
+       WHERE i.is_active = TRUE AND COALESCE(s.stock, 0) < i.min_stock) AS low_stock_alerts,
       (SELECT COUNT(*)
        FROM inventory_batches
        WHERE expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)) AS expiring_soon,
@@ -142,7 +142,7 @@ async function createInventoryItem(payload) {
       payload.categoryId || null,
       payload.baseUnit,
       payload.minStock,
-      payload.isActive ? 1 : 0
+      Boolean(payload.isActive)
     ]
   );
 
@@ -166,7 +166,7 @@ async function updateInventoryItem(id, payload) {
       payload.categoryId || null,
       payload.baseUnit,
       payload.minStock,
-      payload.isActive ? 1 : 0,
+      Boolean(payload.isActive),
       id
     ]
   );
@@ -175,7 +175,7 @@ async function updateInventoryItem(id, payload) {
 
 async function setItemActiveState(id, isActive) {
   const pool = getPool();
-  await pool.execute('UPDATE inventory_items SET is_active = ? WHERE id = ?', [isActive ? 1 : 0, id]);
+  await pool.execute('UPDATE inventory_items SET is_active = ? WHERE id = ?', [Boolean(isActive), id]);
 }
 
 async function createInventoryBatch(payload) {

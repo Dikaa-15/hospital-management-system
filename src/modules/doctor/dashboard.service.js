@@ -649,7 +649,7 @@ async function getSpecializationOptions() {
   const [rows] = await pool.execute(
     `SELECT id, spec_name
      FROM master_specializations
-     WHERE is_active = 1
+     WHERE is_active = TRUE
      ORDER BY spec_name ASC`
   );
   return rows;

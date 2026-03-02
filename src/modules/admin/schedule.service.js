@@ -67,7 +67,7 @@ async function listDoctors() {
     `SELECT u.id, CONCAT_WS(' ', u.title_prefix, u.first_name, u.last_name, u.title_suffix) AS doctor_name
      FROM users u
      JOIN roles r ON r.id = u.role_id
-     WHERE r.role_name = 'doctor' AND u.is_active = 1
+     WHERE r.role_name = 'doctor' AND u.is_active = TRUE
      ORDER BY doctor_name ASC`
   );
   return rows;
