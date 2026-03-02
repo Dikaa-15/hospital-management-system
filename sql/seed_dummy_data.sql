@@ -22,13 +22,13 @@ ON DUPLICATE KEY UPDATE
 -- =========================================================
 -- Master: Roles
 -- =========================================================
-INSERT INTO roles (id, role_name, permissions)
-VALUES
-  ('11111111-1111-1111-1111-111111111111', 'admin', JSON_OBJECT('all', true)),
-  ('22222222-2222-2222-2222-222222222222', 'doctor', JSON_OBJECT('can_view_medical_records', true, 'can_prescribe', true)),
-  ('33333333-3333-3333-3333-333333333333', 'patient', JSON_OBJECT('can_view_self_record', true)),
-  ('44444444-4444-4444-4444-444444444444', 'pharmacist', JSON_OBJECT('can_dispense', true)),
-  ('55555555-5555-5555-5555-555555555555', 'nurse', JSON_OBJECT('can_view_medical_records', true))
+  INSERT INTO roles (id, role_name, permissions)
+  VALUES
+    ('11111111-1111-1111-1111-111111111111', 'admin', JSON_OBJECT('all', true)),
+    ('22222222-2222-2222-2222-222222222222', 'doctor', JSON_OBJECT('can_view_medical_records', true, 'can_prescribe', true)),
+    ('33333333-3333-3333-3333-333333333333', 'patient', JSON_OBJECT('can_view_self_record', true)),
+    ('44444444-4444-4444-4444-444444444444', 'pharmacist', JSON_OBJECT('can_dispense', true)),
+    ('55555555-5555-5555-5555-555555555555', 'nurse', JSON_OBJECT('can_view_medical_records', true))
 ON DUPLICATE KEY UPDATE
   id = VALUES(id),
   role_name = VALUES(role_name),
