@@ -3,6 +3,19 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 let scheduleBootstrapped = false;
 
+function formatDateKey(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value.slice(0, 10);
+
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 async function ensureDoctorShiftTable() {
   if (scheduleBootstrapped) return;
   const pool = getPool();
@@ -177,13 +190,14 @@ async function getWeeklyChart(doctorId) {
     [doctorId]
   );
 
-  const weekMap = new Map(weekRows.map((r) => [String(r.d).slice(0, 10), Number(r.total)]));
+  const weekMap = new Map(weekRows.map((r) => [formatDateKey(r.d), Number(r.total)]));
   const weekLabels = [];
   const weekData = [];
   for (let i = 6; i >= 0; i -= 1) {
     const dt = new Date();
+    dt.setHours(0, 0, 0, 0);
     dt.setDate(dt.getDate() - i);
-    const key = dt.toISOString().slice(0, 10);
+    const key = formatDateKey(dt);
     weekLabels.push(dt.toLocaleDateString('en-US', { weekday: 'short' }));
     weekData.push(weekMap.get(key) || 0);
   }
@@ -199,12 +213,13 @@ async function getWeeklyChart(doctorId) {
     [doctorId]
   );
 
-  const monthMap = new Map(monthRows.map((r) => [String(r.d).slice(0, 10), Number(r.total)]));
+  const monthMap = new Map(monthRows.map((r) => [formatDateKey(r.d), Number(r.total)]));
   const monthData = [0, 0, 0, 0];
   for (let i = 27; i >= 0; i -= 1) {
     const dt = new Date();
+    dt.setHours(0, 0, 0, 0);
     dt.setDate(dt.getDate() - i);
-    const key = dt.toISOString().slice(0, 10);
+    const key = formatDateKey(dt);
     const bucket = Math.min(3, Math.floor((27 - i) / 7));
     monthData[bucket] += monthMap.get(key) || 0;
   }

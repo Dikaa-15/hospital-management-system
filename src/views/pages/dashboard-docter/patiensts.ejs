@@ -1227,6 +1227,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderSummaryStats();
             renderPatientTable(patients);
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('action') === 'add-patient') {
+                onAddPatient();
+                params.delete('action');
+                const nextQs = params.toString();
+                history.replaceState({}, '', `${window.location.pathname}${nextQs ? `?${nextQs}` : ''}`);
+            }
         });
     </script>
 </body>

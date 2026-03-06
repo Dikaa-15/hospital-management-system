@@ -1098,6 +1098,14 @@
             renderUpcomingNext();
             updateCurrentTime();
             updateStats();
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('action') === 'new-appointment') {
+                openNewAppointmentModal();
+                params.delete('action');
+                const nextQs = params.toString();
+                history.replaceState({}, '', `${window.location.pathname}${nextQs ? `?${nextQs}` : ''}`);
+            }
             
             // Update time every minute
             setInterval(updateCurrentTime, 60000);
