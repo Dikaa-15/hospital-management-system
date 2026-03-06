@@ -55,6 +55,10 @@ function getPostgresConfig() {
   const connectionString =
     process.env.SUPABASE_DB_URL ||
     process.env.SUPABASE_DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRESQL_URL ||
+    process.env.RAILWAY_DATABASE_URL ||
+    process.env.PGDATABASE_URL ||
     process.env.DATABASE_URL ||
     '';
 
@@ -68,15 +72,18 @@ function getPostgresConfig() {
     };
   }
 
-  const host = process.env.SUPABASE_DB_HOST || '';
-  const port = Number(process.env.SUPABASE_DB_PORT || 5432);
-  const user = process.env.SUPABASE_DB_USER || '';
-  const password = process.env.SUPABASE_DB_PASSWORD || '';
-  const database = process.env.SUPABASE_DB_NAME || '';
+  const host = process.env.SUPABASE_DB_HOST || process.env.PGHOST || '';
+  const port = Number(process.env.SUPABASE_DB_PORT || process.env.PGPORT || 5432);
+  const user = process.env.SUPABASE_DB_USER || process.env.PGUSER || '';
+  const password = process.env.SUPABASE_DB_PASSWORD || process.env.PGPASSWORD || '';
+  const database = process.env.SUPABASE_DB_NAME || process.env.PGDATABASE || '';
 
   if (!host || !user || !password || !database) {
+    const hasSupabaseApiOnly = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
     throw new Error(
-      "Supabase DB mode requires DATABASE_URL/SUPABASE_DB_URL or full SUPABASE_DB_* credentials. Refusing fallback to local MySQL."
+      hasSupabaseApiOnly
+        ? "Supabase DB mode needs Postgres credentials (DATABASE_URL/SUPABASE_DB_URL or SUPABASE_DB_*/PG*). SUPABASE_URL + SUPABASE_ANON_KEY alone is only for Supabase HTTP API."
+        : "Supabase DB mode requires DATABASE_URL/SUPABASE_DB_URL or full SUPABASE_DB_*/PG* credentials. Refusing fallback to local MySQL."
     );
   }
 
