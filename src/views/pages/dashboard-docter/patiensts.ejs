@@ -475,14 +475,15 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-2">Gender</label>
-                        <div class="flex gap-2">
+                        <div class="flex flex-wrap gap-2">
                             <button class="filter-tag px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:border-green-400 hover:text-green-700 transition-colors" data-filter="gender" data-value="male">Male</button>
                             <button class="filter-tag px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:border-green-400 hover:text-green-700 transition-colors" data-filter="gender" data-value="female">Female</button>
+                            <button class="filter-tag px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:border-green-400 hover:text-green-700 transition-colors" data-filter="gender" data-value="other">Other</button>
                         </div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-2">Age Range</label>
-                        <select class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100">
+                        <select id="ageRangeFilter" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100">
                             <option value="">All Ages</option>
                             <option value="0-18">0-18 years</option>
                             <option value="19-40">19-40 years</option>
@@ -495,6 +496,20 @@
                         <button class="flex-1 btn-primary px-3 py-2 rounded-lg text-sm font-semibold" id="applyFilters">Apply</button>
                     </div>
                 </div>
+            </div>
+            <div id="kebabActionMenu" class="hidden fixed z-40 w-52 rounded-xl border border-slate-200 bg-white shadow-xl p-1.5">
+                <button type="button" class="kebab-action-item w-full text-left px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors" data-action="view">
+                    View Details
+                </button>
+                <button type="button" class="kebab-action-item w-full text-left px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors" data-action="clinical">
+                    Edit Clinical Data
+                </button>
+                <button type="button" class="kebab-action-item w-full text-left px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors" data-action="edit">
+                    Edit Patient
+                </button>
+                <button type="button" class="kebab-action-item w-full text-left px-3 py-2 rounded-lg text-sm text-rose-600 hover:bg-rose-50 transition-colors" data-action="archive">
+                    Archive Patient
+                </button>
             </div>
 
             <!-- Patient Table -->
@@ -643,6 +658,9 @@
         const searchInput = document.getElementById('searchInput');
         const filterBtn = document.getElementById('filterBtn');
         const filterDropdown = document.getElementById('filterDropdown');
+        const ageRangeFilter = document.getElementById('ageRangeFilter');
+        const exportBtn = document.getElementById('exportBtn');
+        const kebabActionMenu = document.getElementById('kebabActionMenu');
         const addPatientBtn = document.getElementById('addPatientBtn');
         const editPatientBtn = document.getElementById('editPatientBtn');
         const deletePatientBtn = document.getElementById('deletePatientBtn');
@@ -650,6 +668,8 @@
         // State
         let selectedPatientId = null;
         let activeFilters = [];
+        let latestRenderedPatients = Array.isArray(patients) ? patients : [];
+        let openActionTrigger = null;
 
         // Status badge styles
         const statusStyles = {
@@ -667,6 +687,7 @@
         // Render patient table
         function renderPatientTable(data) {
             if (!Array.isArray(data) || data.length === 0) {
+                latestRenderedPatients = [];
                 patientTable.innerHTML = `
                     <tr class="border-t border-slate-100">
                         <td colspan="6" class="px-6 py-10 text-center text-sm text-slate-500">No patient data found.</td>
@@ -676,36 +697,43 @@
                 return;
             }
 
+            latestRenderedPatients = data;
             patientTable.innerHTML = data.map((patient, index) => `
                 <tr class="table-row border-t border-slate-100 ${selectedPatientId === patient.id ? 'selected' : ''}" 
                     data-patient-id="${patient.id}"
                     style="animation: fadeInUp 0.4s ease-out ${index * 0.05}s backwards;">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
-                            <img src="${patient.avatar}" alt="${patient.name}" class="w-11 h-11 rounded-full object-cover ring-2 ring-slate-100">
+                            ${patient.avatar ? `
+                                <img src="${escapeHtml(patient.avatar)}" alt="${escapeHtml(patient.name)}" class="w-11 h-11 rounded-full object-cover ring-2 ring-slate-100">
+                            ` : `
+                                <div class="w-11 h-11 rounded-full ring-2 ring-slate-100 bg-green-100 text-green-700 flex items-center justify-center font-bold">
+                                    ${escapeHtml(patient.initial || '?')}
+                                </div>
+                            `}
                             <div>
-                                <p class="font-bold text-slate-900">${patient.name}</p>
-                                <p class="text-sm text-slate-500 font-mono">${patient.mrn || patient.id}</p>
+                                <p class="font-bold text-slate-900">${escapeHtml(patient.name)}</p>
+                                <p class="text-sm text-slate-500 font-mono">${escapeHtml(patient.mrn || patient.id)}</p>
                             </div>
                         </div>
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-2">
-                            <span class="text-sm font-medium text-slate-900">${patient.age} yrs</span>
+                            <span class="text-sm font-medium text-slate-900">${escapeHtml(patient.age)} yrs</span>
                             <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                            <span class="text-sm text-slate-500">${patient.gender}</span>
+                            <span class="text-sm text-slate-500">${escapeHtml(patient.gender)}</span>
                         </div>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="text-sm text-slate-600">${patient.lastVisit}</span>
+                        <span class="text-sm text-slate-600">${escapeHtml(patient.lastVisit)}</span>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="text-sm text-slate-600">${patient.diagnosis}</span>
+                        <span class="text-sm text-slate-600">${escapeHtml(patient.diagnosis)}</span>
                     </td>
                     <td class="px-6 py-4">
                         <span class="status-badge inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${statusStyles[patient.status] || 'bg-slate-100 text-slate-700'}">
                             <span class="w-1.5 h-1.5 rounded-full ${patient.status === 'in-treatment' ? 'bg-green-500 pulse-dot' : patient.status === 'recovered' ? 'bg-blue-500' : 'bg-amber-500'}"></span>
-                            ${statusLabels[patient.status] || patient.status || 'Unknown'}
+                            ${escapeHtml(statusLabels[patient.status] || patient.status || 'Unknown')}
                         </span>
                     </td>
                     <td class="px-6 py-4">
@@ -716,7 +744,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
                             </button>
-                            <button class="p-2 hover:bg-slate-100 rounded-lg transition-colors focus-ring" aria-label="More options">
+                            <button class="p-2 hover:bg-slate-100 rounded-lg transition-colors focus-ring more-actions-btn" data-patient-id="${patient.id}" aria-label="More options">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
                                 </svg>
@@ -739,6 +767,13 @@
             document.querySelectorAll('.view-patient-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     openPatientPanel(btn.dataset.patientId);
+                });
+            });
+
+            document.querySelectorAll('.more-actions-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openPatientActionMenu(btn.dataset.patientId, btn);
                 });
             });
 
@@ -775,13 +810,19 @@
                 <!-- Patient Header -->
                 <div class="text-center pb-6 border-b border-slate-100">
                     <div class="relative inline-block">
-                        <img src="${patient.avatar}" alt="${patient.name}" class="w-24 h-24 rounded-full object-cover ring-4 ring-slate-100 mx-auto">
+                        ${patient.avatar ? `
+                            <img src="${escapeHtml(patient.avatar)}" alt="${escapeHtml(patient.name)}" class="w-24 h-24 rounded-full object-cover ring-4 ring-slate-100 mx-auto">
+                        ` : `
+                            <div class="w-24 h-24 rounded-full ring-4 ring-slate-100 mx-auto bg-green-100 text-green-700 flex items-center justify-center text-3xl font-bold">
+                                ${escapeHtml(patient.initial || '?')}
+                            </div>
+                        `}
                         <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${patient.status === 'in-treatment' ? 'bg-green-400' : patient.status === 'recovered' ? 'bg-blue-400' : 'bg-amber-400'}"></span>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mt-4">${patient.name}</h3>
-                    <p class="text-sm text-slate-500 font-mono">${patient.mrn || patient.id}</p>
+                    <h3 class="text-xl font-bold text-slate-900 mt-4">${escapeHtml(patient.name)}</h3>
+                    <p class="text-sm text-slate-500 font-mono">${escapeHtml(patient.mrn || patient.id)}</p>
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mt-3 ${statusStyles[patient.status] || 'bg-slate-100 text-slate-700'}">
-                        ${statusLabels[patient.status] || patient.status || 'Unknown'}
+                        ${escapeHtml(statusLabels[patient.status] || patient.status || 'Unknown')}
                     </span>
                 </div>
 
@@ -797,7 +838,7 @@
                             </div>
                             <div>
                                 <p class="text-xs text-slate-500">Phone</p>
-                                <p class="text-sm font-medium text-slate-900">${patient.phone || '-'}</p>
+                                <p class="text-sm font-medium text-slate-900">${escapeHtml(patient.phone || '-')}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
@@ -808,7 +849,7 @@
                             </div>
                             <div>
                                 <p class="text-xs text-slate-500">Email</p>
-                                <p class="text-sm font-medium text-slate-900">${patient.email || '-'}</p>
+                                <p class="text-sm font-medium text-slate-900">${escapeHtml(patient.email || '-')}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
@@ -820,7 +861,7 @@
                             </div>
                             <div>
                                 <p class="text-xs text-slate-500">Address</p>
-                                <p class="text-sm font-medium text-slate-900">${patient.address || '-'}</p>
+                                <p class="text-sm font-medium text-slate-900">${escapeHtml(patient.address || '-')}</p>
                             </div>
                         </div>
                     </div>
@@ -837,9 +878,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                                 </svg>
                             </div>
-                            <p class="text-2xl font-bold text-slate-900">${patient.vitals.heartRate[patient.vitals.heartRate.length - 1]} <span class="text-sm font-normal text-slate-400">bpm</span></p>
+                            <p class="text-2xl font-bold text-slate-900">${patient.vitals.heartRate || '-'} <span class="text-sm font-normal text-slate-400">bpm</span></p>
                             <div class="sparkline-container mt-2">
-                                ${generateSparkline(patient.vitals.heartRate, '#4ade80')}
+                                ${generateSparkline(patient.vitals.heartRateSeries || [], '#4ade80')}
                             </div>
                         </div>
                         <div class="vital-card p-4 bg-slate-50 rounded-xl">
@@ -849,7 +890,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                 </svg>
                             </div>
-                            <p class="text-2xl font-bold text-slate-900">${patient.vitals.bloodPressure.systolic}/${patient.vitals.bloodPressure.diastolic}</p>
+                            <p class="text-2xl font-bold text-slate-900">${patient.vitals.bloodPressure.systolic && patient.vitals.bloodPressure.diastolic ? `${patient.vitals.bloodPressure.systolic}/${patient.vitals.bloodPressure.diastolic}` : '-'}</p>
                             <p class="text-xs text-slate-400 mt-1">mmHg</p>
                         </div>
                         <div class="vital-card p-4 bg-slate-50 rounded-xl">
@@ -859,7 +900,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                 </svg>
                             </div>
-                            <p class="text-2xl font-bold text-slate-900">${patient.vitals.temperature}<span class="text-sm font-normal text-slate-400">°F</span></p>
+                            <p class="text-2xl font-bold text-slate-900">${patient.vitals.temperatureC || '-'}<span class="text-sm font-normal text-slate-400">°C</span></p>
                         </div>
                         <div class="vital-card p-4 bg-slate-50 rounded-xl">
                             <div class="flex items-center justify-between mb-2">
@@ -868,7 +909,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
                                 </svg>
                             </div>
-                            <p class="text-2xl font-bold text-slate-900">${patient.vitals.weight}<span class="text-sm font-normal text-slate-400"> lbs</span></p>
+                            <p class="text-2xl font-bold text-slate-900">${patient.vitals.weightKg || '-'}<span class="text-sm font-normal text-slate-400"> kg</span></p>
                         </div>
                     </div>
                 </div>
@@ -878,19 +919,19 @@
                     <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Medical Information</h4>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="p-3 bg-slate-50 rounded-xl">
-                            <p class="text-xs text-slate-500 mb-1">Blood Type</p>
-                            <p class="text-sm font-bold text-slate-900">${patient.bloodType}</p>
+                            <p class="text-xs text-slate-500 mb-1">SpO2</p>
+                            <p class="text-sm font-bold text-slate-900">${patient.vitals.spo2 || '-'}%</p>
                         </div>
                         <div class="p-3 bg-slate-50 rounded-xl">
                             <p class="text-xs text-slate-500 mb-1">Height</p>
-                            <p class="text-sm font-bold text-slate-900">${patient.vitals.height}</p>
+                            <p class="text-sm font-bold text-slate-900">${patient.vitals.heightCm || '-'} cm</p>
                         </div>
                     </div>
                     <div class="p-3 bg-rose-50 rounded-xl border border-rose-100">
                         <p class="text-xs text-rose-600 font-medium mb-1">Allergies</p>
                         <div class="flex flex-wrap gap-1.5 mt-2">
-                            ${(patient.allergies || ['No known allergies']).map(allergy => `
-                                <span class="px-2 py-1 bg-white text-rose-700 text-xs font-medium rounded-md border border-rose-200">${allergy}</span>
+                            ${((patient.allergies || []).length ? patient.allergies : ['Not recorded']).map(allergy => `
+                                <span class="px-2 py-1 bg-white text-rose-700 text-xs font-medium rounded-md border border-rose-200">${escapeHtml(allergy)}</span>
                             `).join('')}
                         </div>
                     </div>
@@ -900,8 +941,8 @@
                 <div class="space-y-3">
                     <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Recent Medical Notes</h4>
                     <div class="p-4 bg-slate-50 rounded-xl">
-                        <p class="text-sm text-slate-600 leading-relaxed">${patient.notes}</p>
-                        <p class="text-xs text-slate-400 mt-3">Last updated: ${patient.lastVisit}</p>
+                        <p class="text-sm text-slate-600 leading-relaxed whitespace-pre-line">${escapeHtml(patient.notes)}</p>
+                        <p class="text-xs text-slate-400 mt-3">Last updated: ${escapeHtml(patient.lastVisit)}</p>
                     </div>
                 </div>
             `;
@@ -930,16 +971,64 @@
             }, 250);
         }
 
-        // Search functionality
-        function handleSearch(query) {
-            const q = (query || '').toLowerCase();
-            const filtered = patients.filter(patient => 
-                (patient.name || '').toLowerCase().includes(q) ||
-                (patient.id || '').toLowerCase().includes(q) ||
-                (patient.mrn || '').toLowerCase().includes(q) ||
-                (patient.diagnosis || '').toLowerCase().includes(q)
-            );
-            renderPatientTable(filtered);
+        function getCurrentFilterState() {
+            const status = activeFilters
+                .filter((f) => f.filter === 'status')
+                .map((f) => String(f.value || '').toLowerCase())
+                .filter(Boolean);
+            const gender = activeFilters
+                .filter((f) => f.filter === 'gender')
+                .map((f) => String(f.value || '').toLowerCase())
+                .filter(Boolean);
+            const q = (searchInput.value || '').trim();
+            const ageRange = String(ageRangeFilter?.value || '').trim();
+            return { q, status, gender, ageRange };
+        }
+
+        function isInAgeRange(age, ageRange) {
+            const value = String(ageRange || '').trim();
+            const n = Number(age || 0);
+            if (!value) return true;
+            if (value === '0-18') return n >= 0 && n <= 18;
+            if (value === '19-40') return n >= 19 && n <= 40;
+            if (value === '41-60') return n >= 41 && n <= 60;
+            if (value === '60+') return n >= 60;
+            return true;
+        }
+
+        function getFilteredPatients() {
+            const { q, status, gender, ageRange } = getCurrentFilterState();
+            const qLower = q.toLowerCase();
+            return patients.filter((patient) => {
+                if (status.length && !status.includes(String(patient.status || '').toLowerCase())) {
+                    return false;
+                }
+                if (gender.length && !gender.includes(String(patient.gender || '').toLowerCase())) {
+                    return false;
+                }
+                if (!isInAgeRange(patient.age, ageRange)) {
+                    return false;
+                }
+                if (!qLower) return true;
+
+                const haystack = [
+                    patient.name,
+                    patient.id,
+                    patient.mrn,
+                    patient.diagnosis,
+                    patient.email,
+                    patient.phone
+                ]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase();
+                return haystack.includes(qLower);
+            });
+        }
+
+        function refreshTable() {
+            const rows = getFilteredPatients();
+            renderPatientTable(rows);
         }
 
         function updateTableMeta(showing, total) {
@@ -1072,6 +1161,81 @@
             };
         }
 
+        function toInput(value) {
+            return escapeHtml(value == null ? '' : String(value));
+        }
+
+        function clinicalFormHtml(patient = {}) {
+            const vitals = patient.vitals || {};
+            const clinical = patient.clinical || {};
+            const bp = vitals.bloodPressure || {};
+            return `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Heart Rate (bpm)</label>
+                        <input id="swal_hr" type="number" min="0" class="hms-swal-input" value="${toInput(vitals.heartRate)}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Temperature (C)</label>
+                        <input id="swal_temp" type="number" min="0" step="0.1" class="hms-swal-input" value="${toInput(vitals.temperatureC)}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Systolic BP</label>
+                        <input id="swal_sys" type="number" min="0" class="hms-swal-input" value="${toInput(bp.systolic)}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Diastolic BP</label>
+                        <input id="swal_dia" type="number" min="0" class="hms-swal-input" value="${toInput(bp.diastolic)}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">SpO2 (%)</label>
+                        <input id="swal_spo2" type="number" min="0" max="100" class="hms-swal-input" value="${toInput(vitals.spo2)}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Weight (kg)</label>
+                        <input id="swal_weight" type="number" min="0" step="0.1" class="hms-swal-input" value="${toInput(vitals.weightKg)}">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Height (cm)</label>
+                        <input id="swal_height" type="number" min="0" step="0.1" class="hms-swal-input" value="${toInput(vitals.heightCm)}">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Subjective (S)</label>
+                        <textarea id="swal_subjective" class="hms-swal-input" rows="2" placeholder="Patient complaints">${toInput(clinical.subjective)}</textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Objective (O)</label>
+                        <textarea id="swal_objective" class="hms-swal-input" rows="2" placeholder="Physical exam">${toInput(clinical.objective)}</textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Assessment (A)</label>
+                        <textarea id="swal_assessment" class="hms-swal-input" rows="2" placeholder="Assessment">${toInput(clinical.assessment)}</textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Plan (P)</label>
+                        <textarea id="swal_plan" class="hms-swal-input" rows="2" placeholder="Treatment plan">${toInput(clinical.plan)}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        function collectClinicalFormValues() {
+            const get = (id) => document.getElementById(id)?.value?.trim() || '';
+            return {
+                heart_rate: get('swal_hr'),
+                temp_celcius: get('swal_temp'),
+                systolic_bp: get('swal_sys'),
+                diastolic_bp: get('swal_dia'),
+                spo2: get('swal_spo2'),
+                weight_kg: get('swal_weight'),
+                height_cm: get('swal_height'),
+                subjective: get('swal_subjective'),
+                objective: get('swal_objective'),
+                assessment: get('swal_assessment'),
+                plan: get('swal_plan')
+            };
+        }
+
         async function onAddPatient() {
             const { value: formValues } = await Swal.fire({
                 title: 'Add Patient',
@@ -1114,6 +1278,30 @@
             }
         }
 
+        async function onEditPatientClinical() {
+            const patient = selectedPatient();
+            if (!patient) {
+                Swal.fire({ icon: 'info', title: 'Select a patient first' });
+                return;
+            }
+
+            const { value: formValues } = await Swal.fire({
+                title: `Clinical Data: ${patient.name}`,
+                html: clinicalFormHtml(patient),
+                ...swalThemeConfig('Save'),
+                preConfirm: collectClinicalFormValues
+            });
+
+            if (!formValues) return;
+            try {
+                await postForm(`/doctor/patients/${patient.id}/clinical`, formValues);
+                await Swal.fire({ icon: 'success', title: 'Updated', text: 'Clinical data has been updated' });
+                window.location.reload();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Failed', text: error.message });
+            }
+        }
+
         async function onDeletePatient() {
             const patient = selectedPatient();
             if (!patient) {
@@ -1136,6 +1324,119 @@
                 window.location.reload();
             } catch (error) {
                 Swal.fire({ icon: 'error', title: 'Failed', text: error.message });
+            }
+        }
+
+        function closePatientActionMenu() {
+            if (!kebabActionMenu) return;
+            kebabActionMenu.classList.add('hidden');
+            if (openActionTrigger) {
+                openActionTrigger.classList.remove('bg-slate-100');
+                openActionTrigger = null;
+            }
+        }
+
+        function placePatientActionMenu(triggerEl) {
+            if (!kebabActionMenu || !triggerEl) return;
+
+            const gap = 6;
+            const rect = triggerEl.getBoundingClientRect();
+            kebabActionMenu.style.top = '0px';
+            kebabActionMenu.style.left = '0px';
+            kebabActionMenu.classList.remove('hidden');
+
+            const menuRect = kebabActionMenu.getBoundingClientRect();
+            let top = rect.bottom + gap;
+            let left = rect.right - menuRect.width;
+
+            if (left < 8) left = 8;
+            if (left + menuRect.width > window.innerWidth - 8) {
+                left = window.innerWidth - menuRect.width - 8;
+            }
+            if (top + menuRect.height > window.innerHeight - 8) {
+                top = rect.top - menuRect.height - gap;
+            }
+            if (top < 8) top = 8;
+
+            kebabActionMenu.style.top = `${Math.round(top)}px`;
+            kebabActionMenu.style.left = `${Math.round(left)}px`;
+        }
+
+        function openPatientActionMenu(patientId, triggerEl) {
+            selectedPatientId = patientId;
+            const patient = selectedPatient();
+            if (!patient) return;
+
+            const isSameTrigger = openActionTrigger === triggerEl && !kebabActionMenu.classList.contains('hidden');
+            if (isSameTrigger) {
+                closePatientActionMenu();
+                return;
+            }
+
+            closePatientActionMenu();
+            openActionTrigger = triggerEl;
+            openActionTrigger.classList.add('bg-slate-100');
+            kebabActionMenu.dataset.patientId = patientId;
+            placePatientActionMenu(triggerEl);
+        }
+
+        async function handlePatientActionMenu(action) {
+            if (!action) return;
+            const patientId = kebabActionMenu?.dataset?.patientId;
+            if (!patientId) return;
+            closePatientActionMenu();
+
+            if (action === 'view') {
+                openPatientPanel(patientId);
+                return;
+            }
+            if (action === 'clinical') {
+                await onEditPatientClinical();
+                return;
+            }
+            if (action === 'edit') {
+                await onEditPatient();
+                return;
+            }
+            if (action === 'archive') {
+                await onDeletePatient();
+            }
+        }
+
+        async function exportPatients() {
+            try {
+                applyFilters();
+                const { q, status, gender, ageRange } = getCurrentFilterState();
+                const params = new URLSearchParams();
+                if (q) params.set('q', q);
+                if (status.length) params.set('status', status.join(','));
+                if (gender.length) params.set('gender', gender.join(','));
+                if (ageRange) params.set('age_range', ageRange);
+
+                const url = `/doctor/patients/export${params.toString() ? `?${params.toString()}` : ''}`;
+                const res = await fetch(url, { method: 'GET' });
+                if (!res.ok) {
+                    const payload = await res.json().catch(() => ({ message: 'Failed to export data' }));
+                    throw new Error(payload.message || 'Failed to export data');
+                }
+
+                const blob = await res.blob();
+                const disposition = res.headers.get('content-disposition') || '';
+                const filenameMatch = disposition.match(/filename="([^"]+)"/i);
+                const filename = filenameMatch ? filenameMatch[1] : 'doctor-patients.xlsx';
+
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(blobUrl);
+
+                await Swal.fire({ icon: 'success', title: 'Exported', text: `Exported ${latestRenderedPatients.length} patient(s) to XLSX.` });
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Export Failed', text: error.message });
             }
         }
 
@@ -1162,19 +1463,7 @@
         }
 
         function applyFilters() {
-            if (activeFilters.length === 0) {
-                renderPatientTable(patients);
-                return;
-            }
-
-            const filtered = patients.filter(patient => {
-                return activeFilters.every(f => {
-                    if (f.filter === 'status') return patient.status === f.value;
-                    if (f.filter === 'gender') return (patient.gender || '').toLowerCase() === f.value;
-                    return true;
-                });
-            });
-            renderPatientTable(filtered);
+            refreshTable();
         }
 
         // Event Listeners
@@ -1184,13 +1473,13 @@
         editPatientBtn.addEventListener('click', onEditPatient);
         deletePatientBtn.addEventListener('click', onDeletePatient);
 
-        searchInput.addEventListener('input', (e) => {
-            handleSearch(e.target.value);
-        });
+        searchInput.addEventListener('input', refreshTable);
 
         filterBtn.addEventListener('click', () => {
             filterDropdown.classList.toggle('hidden');
         });
+
+        exportBtn.addEventListener('click', exportPatients);
 
         document.querySelectorAll('.filter-tag').forEach(tag => {
             tag.addEventListener('click', () => {
@@ -1201,7 +1490,9 @@
         document.getElementById('clearFilters').addEventListener('click', () => {
             activeFilters = [];
             updateFilterTags();
-            renderPatientTable(patients);
+            searchInput.value = '';
+            if (ageRangeFilter) ageRangeFilter.value = '';
+            refreshTable();
         });
 
         document.getElementById('applyFilters').addEventListener('click', () => {
@@ -1209,24 +1500,55 @@
             filterDropdown.classList.add('hidden');
         });
 
+        if (ageRangeFilter) {
+            ageRangeFilter.addEventListener('change', refreshTable);
+        }
+
         // Close filter dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!filterDropdown.contains(e.target) && !filterBtn.contains(e.target)) {
                 filterDropdown.classList.add('hidden');
             }
+            const clickedKebabTrigger = e.target.closest('.more-actions-btn');
+            if (!clickedKebabTrigger && kebabActionMenu && !kebabActionMenu.contains(e.target)) {
+                closePatientActionMenu();
+            }
         });
 
         // Keyboard accessibility
         document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && kebabActionMenu && !kebabActionMenu.classList.contains('hidden')) {
+                closePatientActionMenu();
+                return;
+            }
             if (e.key === 'Escape' && !patientPanel.classList.contains('hidden')) {
                 closePatientPanel();
             }
         });
 
+        window.addEventListener('resize', () => {
+            if (!kebabActionMenu || kebabActionMenu.classList.contains('hidden') || !openActionTrigger) return;
+            placePatientActionMenu(openActionTrigger);
+        });
+
+        window.addEventListener('scroll', () => {
+            if (!kebabActionMenu || kebabActionMenu.classList.contains('hidden')) return;
+            closePatientActionMenu();
+        }, true);
+
+        if (kebabActionMenu) {
+            kebabActionMenu.querySelectorAll('.kebab-action-item').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await handlePatientActionMenu(btn.dataset.action);
+                });
+            });
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             renderSummaryStats();
-            renderPatientTable(patients);
+            refreshTable();
 
             const params = new URLSearchParams(window.location.search);
             if (params.get('action') === 'add-patient') {

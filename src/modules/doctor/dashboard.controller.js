@@ -5,6 +5,7 @@ const {
   getDoctorPatientDirectory,
   createDoctorPatient,
   updateDoctorPatient,
+  updateDoctorPatientClinical,
   deleteDoctorPatient,
   getDoctorPatientsLookup,
   getDoctorAppointments,
@@ -127,25 +128,58 @@ function mapPatientStatus(encounterStatus) {
   return 'in-treatment';
 }
 
-function toFeetInches(heightCm) {
-  const cm = Number(heightCm || 0);
-  if (!cm) return '-';
-  const totalInches = cm / 2.54;
-  const feet = Math.floor(totalInches / 12);
-  const inches = Math.round(totalInches % 12);
-  return `${feet}'${inches}"`;
+function toLocalDateInput(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
-function buildHeartRateSeries(hr) {
-  const base = Number(hr || 72);
-  return [base - 2, base, base + 1, base - 1, base, base + 2, base - 1, base].map((n) => Math.max(50, n));
+function buildClinicalNotes(row) {
+  const sections = [
+    row.clinical_subjective ? `S: ${row.clinical_subjective}` : '',
+    row.clinical_objective ? `O: ${row.clinical_objective}` : '',
+    row.clinical_assessment ? `A: ${row.clinical_assessment}` : '',
+    row.clinical_plan ? `P: ${row.clinical_plan}` : ''
+  ].filter(Boolean);
+  return sections.join('\n') || 'No recent clinical notes.';
+}
+
+function extractAllergies(subjective) {
+  const text = String(subjective || '').trim();
+  if (!text) return [];
+
+  const lower = text.toLowerCase();
+  const index = Math.max(lower.indexOf('allerg'), lower.indexOf('alerg'));
+  if (index < 0) return [];
+
+  const segment = text
+    .slice(index)
+    .split(/[.;\n]/)[0]
+    .replace(/^(allerg(?:y|ies)?|alergi)\s*[:\-]?\s*/i, '')
+    .trim();
+
+  if (!segment || /^(none|no known|tidak ada)$/i.test(segment)) return [];
+
+  return segment
+    .split(/,|\/| dan | and /i)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function mapDoctorPatients(rows) {
   return rows.map((r) => {
     const age = r.date_of_birth ? Math.max(0, Math.floor((Date.now() - new Date(r.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))) : 0;
-    const tempF = Number(r.temp_celcius || 0) > 0 ? ((Number(r.temp_celcius) * 9) / 5 + 32).toFixed(1) : '98.6';
-    const weightLbs = Number(r.weight_kg || 0) > 0 ? Math.round(Number(r.weight_kg) * 2.20462) : 0;
+    const heartRate = Number(r.heart_rate || 0);
+    const systolic = Number(r.systolic_bp || 0);
+    const diastolic = Number(r.diastolic_bp || 0);
+    const tempC = Number(r.temp_celcius || 0);
+    const spo2 = Number(r.spo2 || 0);
+    const weightKg = Number(r.weight_kg || 0);
+    const heightCm = Number(r.height_cm || 0);
     const displayName = [r.first_name, r.last_name].filter(Boolean).join(' ').trim() || 'Unknown Patient';
     const code = r.medical_record_number || String(r.patient_uuid || '').slice(0, 8).toUpperCase();
 
@@ -153,28 +187,89 @@ function mapDoctorPatients(rows) {
       id: r.patient_uuid,
       mrn: code,
       name: displayName,
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face',
+      avatar: '',
+      initial: displayName.charAt(0).toUpperCase() || '?',
       age,
       gender: r.gender || '-',
-      dob: r.date_of_birth ? new Date(r.date_of_birth).toISOString().slice(0, 10) : '',
+      dob: toLocalDateInput(r.date_of_birth),
       lastVisit: formatVisitDate(r.visit_date),
       diagnosis: r.diagnosis || 'N/A',
       status: mapPatientStatus(r.encounter_status),
       phone: r.phone_number || '',
       email: r.email || '',
       address: r.address || '',
-      bloodType: 'Unknown',
-      allergies: ['No known allergies'],
-      vitals: {
-        heartRate: buildHeartRateSeries(r.heart_rate),
-        bloodPressure: { systolic: Number(r.systolic_bp || 120), diastolic: Number(r.diastolic_bp || 80) },
-        temperature: Number(tempF),
-        weight: weightLbs || 0,
-        height: toFeetInches(r.height_cm)
+      bloodType: r.blood_type || r.blood_group || '',
+      allergies: extractAllergies(r.clinical_subjective),
+      clinical: {
+        subjective: r.clinical_subjective || '',
+        objective: r.clinical_objective || '',
+        assessment: r.clinical_assessment || '',
+        plan: r.clinical_plan || ''
       },
-      notes: r.clinical_plan || 'No recent clinical notes.'
+      vitals: {
+        heartRate: heartRate || null,
+        heartRateSeries: heartRate ? [heartRate] : [],
+        bloodPressure: { systolic: systolic || null, diastolic: diastolic || null },
+        temperatureC: tempC || null,
+        spo2: spo2 || null,
+        weightKg: weightKg || null,
+        heightCm: heightCm || null
+      },
+      notes: buildClinicalNotes(r)
     };
   });
+}
+
+function parseMultiQuery(raw) {
+  return String(raw || '')
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function isInAgeRange(age, ageRange) {
+  const value = String(ageRange || '').trim();
+  if (!value) return true;
+  const n = Number(age || 0);
+  if (value === '0-18') return n >= 0 && n <= 18;
+  if (value === '19-40') return n >= 19 && n <= 40;
+  if (value === '41-60') return n >= 41 && n <= 60;
+  if (value === '60+') return n >= 60;
+  return true;
+}
+
+function filterDoctorPatients(rows, { q = '', statuses = [], genders = [], ageRange = '' }) {
+  const normalizedQ = String(q || '').trim().toLowerCase();
+  const statusSet = new Set((statuses || []).map((item) => String(item).trim().toLowerCase()).filter(Boolean));
+  const genderSet = new Set((genders || []).map((item) => String(item).trim().toLowerCase()).filter(Boolean));
+
+  return rows.filter((patient) => {
+    if (statusSet.size && !statusSet.has(String(patient.status || '').toLowerCase())) return false;
+    if (genderSet.size && !genderSet.has(String(patient.gender || '').toLowerCase())) return false;
+    if (!isInAgeRange(patient.age, ageRange)) return false;
+    if (!normalizedQ) return true;
+
+    const haystack = [
+      patient.name,
+      patient.mrn,
+      patient.id,
+      patient.diagnosis,
+      patient.phone,
+      patient.email
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(normalizedQ);
+  });
+}
+
+function toStatusLabel(status) {
+  const key = String(status || '').toLowerCase();
+  if (key === 'in-treatment') return 'In Treatment';
+  if (key === 'recovered') return 'Recovered';
+  if (key === 'check-up') return 'Check-up';
+  return status || '-';
 }
 
 function mapAppointmentStatus(row) {
@@ -377,6 +472,114 @@ async function renderDoctorPatients(req, res) {
       pageError: `Failed to load patients: ${error.message}`,
       baseHref: '/templates/dashboard-docter/'
     });
+  }
+}
+
+async function handleExportDoctorPatients(req, res) {
+  const doctorId = req.session.user?.id;
+  const q = (req.query.q || '').trim();
+  const statuses = parseMultiQuery(req.query.status);
+  const genders = parseMultiQuery(req.query.gender);
+  const ageRange = String(req.query.age_range || '').trim();
+
+  try {
+    let ExcelJS;
+    try {
+      // Lazy-load dependency so app can still run if export is not used.
+      // eslint-disable-next-line global-require
+      ExcelJS = require('exceljs');
+    } catch (error) {
+      return res.status(500).json({ ok: false, message: "Missing dependency 'exceljs'. Run: npm install exceljs" });
+    }
+
+    const rows = await getDoctorPatientDirectory(doctorId);
+    const mapped = mapDoctorPatients(rows);
+    const filtered = filterDoctorPatients(mapped, { q, statuses, genders, ageRange });
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'HMS';
+    workbook.created = new Date();
+
+    const worksheet = workbook.addWorksheet('Doctor Patients');
+    worksheet.columns = [
+      { header: 'No', key: 'no', width: 6 },
+      { header: 'MRN', key: 'mrn', width: 18 },
+      { header: 'Patient Name', key: 'name', width: 26 },
+      { header: 'Gender', key: 'gender', width: 12 },
+      { header: 'Age', key: 'age', width: 8 },
+      { header: 'Last Visit', key: 'lastVisit', width: 16 },
+      { header: 'Diagnosis', key: 'diagnosis', width: 22 },
+      { header: 'Status', key: 'status', width: 14 },
+      { header: 'Phone', key: 'phone', width: 18 },
+      { header: 'Email', key: 'email', width: 28 },
+      { header: 'Address', key: 'address', width: 34 },
+      { header: 'SpO2 (%)', key: 'spo2', width: 12 },
+      { header: 'Allergies', key: 'allergies', width: 28 },
+      { header: 'Heart Rate (bpm)', key: 'heartRate', width: 16 },
+      { header: 'Blood Pressure', key: 'bloodPressure', width: 16 },
+      { header: 'Temperature (C)', key: 'temperature', width: 16 },
+      { header: 'Weight (kg)', key: 'weight', width: 14 },
+      { header: 'Height (cm)', key: 'height', width: 14 },
+      { header: 'Recent Notes', key: 'notes', width: 44 }
+    ];
+
+    filtered.forEach((patient, idx) => {
+      const systolic = patient.vitals?.bloodPressure?.systolic;
+      const diastolic = patient.vitals?.bloodPressure?.diastolic;
+      worksheet.addRow({
+        no: idx + 1,
+        mrn: patient.mrn || '-',
+        name: patient.name || '-',
+        gender: patient.gender || '-',
+        age: patient.age || 0,
+        lastVisit: patient.lastVisit || '-',
+        diagnosis: patient.diagnosis || '-',
+        status: toStatusLabel(patient.status),
+        phone: patient.phone || '-',
+        email: patient.email || '-',
+        address: patient.address || '-',
+        spo2: patient.vitals?.spo2 || '-',
+        allergies: (patient.allergies || []).length ? patient.allergies.join(', ') : 'Not recorded',
+        heartRate: patient.vitals?.heartRate || '-',
+        bloodPressure: systolic && diastolic ? `${systolic}/${diastolic}` : '-',
+        temperature: patient.vitals?.temperatureC || '-',
+        weight: patient.vitals?.weightKg || '-',
+        height: patient.vitals?.heightCm || '-',
+        notes: patient.notes || '-'
+      });
+    });
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FF0F172A' } };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 22;
+
+    worksheet.eachRow((row, rowNumber) => {
+      row.alignment = { vertical: 'top', wrapText: true };
+      if (rowNumber > 1) {
+        row.getCell(1).alignment = { vertical: 'top', horizontal: 'center' };
+      }
+    });
+
+    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: worksheet.columns.length }
+    };
+
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const filename = `doctor-patients-${y}${m}${d}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    await workbook.xlsx.write(res);
+    return res.end();
+  } catch (error) {
+    return res.status(500).json({ ok: false, message: `Failed to export patients: ${error.message}` });
   }
 }
 
@@ -647,6 +850,50 @@ async function handleUpdateDoctorPatient(req, res) {
   }
 }
 
+function parseOptionalNumber(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+async function handleUpdateDoctorPatientClinical(req, res) {
+  const doctorId = req.session.user?.id;
+  const patientId = req.params.id;
+
+  const systolicBp = parseOptionalNumber(req.body.systolic_bp);
+  const diastolicBp = parseOptionalNumber(req.body.diastolic_bp);
+  const heartRate = parseOptionalNumber(req.body.heart_rate);
+  const tempCelcius = parseOptionalNumber(req.body.temp_celcius);
+  const spo2 = parseOptionalNumber(req.body.spo2);
+  const weightKg = parseOptionalNumber(req.body.weight_kg);
+  const heightCm = parseOptionalNumber(req.body.height_cm);
+
+  const numericFields = [systolicBp, diastolicBp, heartRate, tempCelcius, spo2, weightKg, heightCm];
+  if (numericFields.some((n) => Number.isNaN(n))) {
+    return res.status(400).json({ ok: false, message: 'Invalid numeric value in clinical form' });
+  }
+
+  try {
+    await updateDoctorPatientClinical(doctorId, patientId, {
+      systolicBp,
+      diastolicBp,
+      heartRate,
+      tempCelcius,
+      spo2,
+      weightKg,
+      heightCm,
+      subjective: (req.body.subjective || '').trim(),
+      objective: (req.body.objective || '').trim(),
+      assessment: (req.body.assessment || '').trim(),
+      plan: (req.body.plan || '').trim()
+    });
+    return res.json({ ok: true, message: 'Clinical data updated' });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({ ok: false, message: error.message });
+  }
+}
+
 async function handleDeleteDoctorPatient(req, res) {
   const doctorId = req.session.user?.id;
   const patientId = req.params.id;
@@ -762,7 +1009,9 @@ module.exports = {
   renderDoctorReports,
   handleCreateDoctorPatient,
   handleUpdateDoctorPatient,
+  handleUpdateDoctorPatientClinical,
   handleDeleteDoctorPatient,
+  handleExportDoctorPatients,
   handleCreateDoctorAppointment,
   handleUpdateDoctorAppointmentStatus,
   handleCreateDoctorShift,

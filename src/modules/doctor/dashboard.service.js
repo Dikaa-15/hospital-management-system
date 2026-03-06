@@ -284,8 +284,12 @@ async function getDoctorPatientDirectory(doctorId) {
       cv.systolic_bp,
       cv.diastolic_bp,
       cv.temp_celcius,
+      cv.spo2,
       cv.weight_kg,
       cv.height_cm,
+      cn.subjective AS clinical_subjective,
+      cn.objective AS clinical_objective,
+      cn.assessment AS clinical_assessment,
       cn.plan AS clinical_plan
     FROM encounters e
     JOIN (
@@ -404,6 +408,142 @@ async function updateDoctorPatient(doctorId, patientId, payload) {
       patientId
     ]
   );
+}
+
+async function updateDoctorPatientClinical(doctorId, patientId, payload) {
+  const hasAccess = await doctorHasPatientAccess(doctorId, patientId);
+  if (!hasAccess) {
+    const error = new Error('Patient not found in your directory');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const pool = getPool();
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [encounters] = await conn.execute(
+      `SELECT e.id
+       FROM encounters e
+       JOIN patients p ON p.id = e.patient_id
+       WHERE e.doctor_id = ? AND e.patient_id = ? AND p.deleted_at IS NULL
+       ORDER BY e.visit_date DESC
+       LIMIT 1`,
+      [doctorId, patientId]
+    );
+
+    const encounterId = encounters?.[0]?.id;
+    if (!encounterId) {
+      const error = new Error('No encounter found for selected patient');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const [vitalsRows] = await conn.execute(
+      `SELECT id
+       FROM clinical_vitals
+       WHERE encounter_id = ?
+       ORDER BY recorded_at DESC
+       LIMIT 1`,
+      [encounterId]
+    );
+
+    if (vitalsRows.length > 0) {
+      await conn.execute(
+        `UPDATE clinical_vitals
+         SET systolic_bp = ?,
+             diastolic_bp = ?,
+             heart_rate = ?,
+             temp_celcius = ?,
+             spo2 = ?,
+             weight_kg = ?,
+             height_cm = ?,
+             recorded_by = ?,
+             recorded_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        [
+          payload.systolicBp,
+          payload.diastolicBp,
+          payload.heartRate,
+          payload.tempCelcius,
+          payload.spo2,
+          payload.weightKg,
+          payload.heightCm,
+          doctorId,
+          vitalsRows[0].id
+        ]
+      );
+    } else {
+      await conn.execute(
+        `INSERT INTO clinical_vitals (
+           id, encounter_id, systolic_bp, diastolic_bp, heart_rate, temp_celcius, spo2, weight_kg, height_cm, recorded_by
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          crypto.randomUUID(),
+          encounterId,
+          payload.systolicBp,
+          payload.diastolicBp,
+          payload.heartRate,
+          payload.tempCelcius,
+          payload.spo2,
+          payload.weightKg,
+          payload.heightCm,
+          doctorId
+        ]
+      );
+    }
+
+    const [noteRows] = await conn.execute(
+      `SELECT id
+       FROM clinical_notes
+       WHERE encounter_id = ?
+       LIMIT 1`,
+      [encounterId]
+    );
+
+    if (noteRows.length > 0) {
+      await conn.execute(
+        `UPDATE clinical_notes
+         SET subjective = ?,
+             objective = ?,
+             assessment = ?,
+             plan = ?,
+             attending_physician_id = ?
+         WHERE encounter_id = ?`,
+        [
+          payload.subjective || null,
+          payload.objective || null,
+          payload.assessment || null,
+          payload.plan || null,
+          doctorId,
+          encounterId
+        ]
+      );
+    } else {
+      await conn.execute(
+        `INSERT INTO clinical_notes (
+           id, encounter_id, subjective, objective, assessment, plan, attending_physician_id
+         ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          crypto.randomUUID(),
+          encounterId,
+          payload.subjective || null,
+          payload.objective || null,
+          payload.assessment || null,
+          payload.plan || null,
+          doctorId
+        ]
+      );
+    }
+
+    await conn.commit();
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
 }
 
 async function deleteDoctorPatient(doctorId, patientId) {
@@ -747,6 +887,7 @@ module.exports = {
   getDoctorPatientDirectory,
   createDoctorPatient,
   updateDoctorPatient,
+  updateDoctorPatientClinical,
   deleteDoctorPatient,
   getDoctorPatientsLookup,
   getDoctorAppointments,

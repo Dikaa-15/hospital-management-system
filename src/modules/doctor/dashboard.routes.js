@@ -10,7 +10,9 @@ const {
   renderDoctorSettings,
   handleCreateDoctorPatient,
   handleUpdateDoctorPatient,
+  handleUpdateDoctorPatientClinical,
   handleDeleteDoctorPatient,
+  handleExportDoctorPatients,
   handleCreateDoctorAppointment,
   handleUpdateDoctorAppointmentStatus,
   handleCreateDoctorShift,
@@ -27,6 +29,7 @@ router.get('/templates/dashboard-docter/dashboard.html', requireAuth, allowRoles
 router.get('/templates/dashboard-docter/patiensts', requireAuth, allowRoles('doctor'), renderDoctorPatients);
 router.get('/templates/dashboard-docter/patiensts.html', requireAuth, allowRoles('doctor'), renderDoctorPatients);
 router.get('/doctor/patients', requireAuth, allowRoles('doctor'), renderDoctorPatients);
+router.get('/doctor/patients/export', requireAuth, allowRoles('doctor'), handleExportDoctorPatients);
 router.get('/templates/dashboard-docter/appointments', requireAuth, allowRoles('doctor'), renderDoctorAppointments);
 router.get('/templates/dashboard-docter/appointments.html', requireAuth, allowRoles('doctor'), renderDoctorAppointments);
 router.get('/doctor/appointments', requireAuth, allowRoles('doctor'), renderDoctorAppointments);
@@ -41,6 +44,7 @@ router.get('/templates/dashboard-docter/settings.html', requireAuth, allowRoles(
 router.get('/doctor/settings', requireAuth, allowRoles('doctor'), renderDoctorSettings);
 router.post('/doctor/patients', requireAuth, allowRoles('doctor'), handleCreateDoctorPatient);
 router.post('/doctor/patients/:id/update', requireAuth, allowRoles('doctor'), handleUpdateDoctorPatient);
+router.post('/doctor/patients/:id/clinical', requireAuth, allowRoles('doctor'), handleUpdateDoctorPatientClinical);
 router.post('/doctor/patients/:id/delete', requireAuth, allowRoles('doctor'), handleDeleteDoctorPatient);
 router.post('/doctor/appointments', requireAuth, allowRoles('doctor'), handleCreateDoctorAppointment);
 router.post('/doctor/appointments/:id/status', requireAuth, allowRoles('doctor'), handleUpdateDoctorAppointmentStatus);
