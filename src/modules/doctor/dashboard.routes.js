@@ -5,6 +5,7 @@ const {
   renderDoctorDashboard,
   renderDoctorPatients,
   renderDoctorAppointments,
+  handleExportDoctorAppointments,
   renderDoctorSchedules,
   renderDoctorReports,
   renderDoctorSettings,
@@ -33,6 +34,7 @@ router.get('/doctor/patients/export', requireAuth, allowRoles('doctor'), handleE
 router.get('/templates/dashboard-docter/appointments', requireAuth, allowRoles('doctor'), renderDoctorAppointments);
 router.get('/templates/dashboard-docter/appointments.html', requireAuth, allowRoles('doctor'), renderDoctorAppointments);
 router.get('/doctor/appointments', requireAuth, allowRoles('doctor'), renderDoctorAppointments);
+router.get('/doctor/appointments/export', requireAuth, allowRoles('doctor'), handleExportDoctorAppointments);
 router.get('/templates/dashboard-docter/schedules', requireAuth, allowRoles('doctor'), renderDoctorSchedules);
 router.get('/templates/dashboard-docter/schedules.html', requireAuth, allowRoles('doctor'), renderDoctorSchedules);
 router.get('/doctor/schedules', requireAuth, allowRoles('doctor'), renderDoctorSchedules);

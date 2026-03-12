@@ -302,11 +302,36 @@ function mapAppointments(rows) {
       endTime: range.endTime,
       duration: 30,
       reason: r.admission_type || 'General consultation',
+      diagnosis: r.diagnosis_code || 'N/A',
+      clinical: {
+        subjective: r.clinical_subjective || '',
+        objective: r.clinical_objective || '',
+        assessment: r.clinical_assessment || '',
+        plan: r.clinical_plan || ''
+      },
       status: mapAppointmentStatus(r),
       type: (r.admission_type || 'Consultation').toLowerCase(),
       date: new Date(r.visit_date).toISOString()
     };
   });
+}
+
+function toLocalDateYmd(value) {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function filterAppointmentsByTab(rows, tab) {
+  const key = String(tab || '').toLowerCase();
+  if (key === 'upcoming') return rows.filter((a) => ['waiting', 'confirmed', 'in-progress'].includes(a.status));
+  if (key === 'pending') return rows.filter((a) => a.status === 'pending');
+  if (key === 'completed') return rows.filter((a) => a.status === 'completed');
+  if (key === 'cancelled') return rows.filter((a) => a.status === 'cancelled');
+  return rows;
 }
 
 function mapShiftTypeToBlock(shiftType) {
@@ -611,6 +636,93 @@ async function renderDoctorAppointments(req, res) {
       pageError: `Failed to load appointments: ${error.message}`,
       baseHref: '/templates/dashboard-docter/'
     });
+  }
+}
+
+async function handleExportDoctorAppointments(req, res) {
+  const doctorId = req.session.user?.id;
+  const dateYmd = String(req.query.date || '').trim();
+  const tab = String(req.query.tab || '').trim().toLowerCase();
+
+  try {
+    let ExcelJS;
+    try {
+      // eslint-disable-next-line global-require
+      ExcelJS = require('exceljs');
+    } catch (error) {
+      return res.status(500).json({ ok: false, message: "Missing dependency 'exceljs'. Run: npm install exceljs" });
+    }
+
+    const rows = await getDoctorAppointments(doctorId);
+    const mapped = mapAppointments(rows);
+    const byDate = dateYmd ? mapped.filter((a) => toLocalDateYmd(a.date) === dateYmd) : mapped;
+    const filtered = filterAppointmentsByTab(byDate, tab);
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'HMS';
+    workbook.created = new Date();
+    const worksheet = workbook.addWorksheet('Doctor Appointments');
+    worksheet.columns = [
+      { header: 'No', key: 'no', width: 6 },
+      { header: 'Appointment ID', key: 'id', width: 22 },
+      { header: 'Patient Name', key: 'patientName', width: 24 },
+      { header: 'MRN', key: 'mrn', width: 18 },
+      { header: 'Visit Date', key: 'visitDate', width: 18 },
+      { header: 'Start Time', key: 'startTime', width: 12 },
+      { header: 'End Time', key: 'endTime', width: 12 },
+      { header: 'Status', key: 'status', width: 14 },
+      { header: 'Type', key: 'type', width: 16 },
+      { header: 'Reason', key: 'reason', width: 22 },
+      { header: 'Diagnosis', key: 'diagnosis', width: 18 },
+      { header: 'Clinical Notes', key: 'clinicalNotes', width: 44 }
+    ];
+
+    filtered.forEach((item, idx) => {
+      const clinicalNotes = [item.clinical?.subjective, item.clinical?.objective, item.clinical?.assessment, item.clinical?.plan]
+        .filter(Boolean)
+        .join(' | ');
+      worksheet.addRow({
+        no: idx + 1,
+        id: item.id,
+        patientName: item.patientName || '-',
+        mrn: item.patientCode || '-',
+        visitDate: toLocalDateYmd(item.date) || '-',
+        startTime: item.time || '-',
+        endTime: item.endTime || '-',
+        status: item.status || '-',
+        type: item.type || '-',
+        reason: item.reason || '-',
+        diagnosis: item.diagnosis || '-',
+        clinicalNotes: clinicalNotes || '-'
+      });
+    });
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FF0F172A' } };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 22;
+    worksheet.eachRow((row) => {
+      row.alignment = { vertical: 'top', wrapText: true };
+    });
+    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: worksheet.columns.length }
+    };
+
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const filename = `doctor-appointments-${y}${m}${d}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    await workbook.xlsx.write(res);
+    return res.end();
+  } catch (error) {
+    return res.status(500).json({ ok: false, message: `Failed to export appointments: ${error.message}` });
   }
 }
 
@@ -1005,6 +1117,7 @@ module.exports = {
   renderDoctorDashboard,
   renderDoctorPatients,
   renderDoctorAppointments,
+  handleExportDoctorAppointments,
   renderDoctorSchedules,
   renderDoctorReports,
   handleCreateDoctorPatient,

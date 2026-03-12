@@ -482,7 +482,7 @@
                             <p class="text-sm text-slate-500 mt-1">Manage your schedule and patient queue</p>
                         </div>
                         <div class="flex items-center gap-3">
-                            <button class="btn-secondary px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 focus-ring">
+                            <button class="btn-secondary px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 focus-ring" id="exportAppointmentsBtn">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                 </svg>
@@ -698,7 +698,9 @@
         const upcomingNext = document.getElementById('upcomingNext');
         const newAppointmentBtn = document.getElementById('newAppointmentBtn');
         const emptyScheduleBtn = document.getElementById('emptyScheduleBtn');
+        const exportAppointmentsBtn = document.getElementById('exportAppointmentsBtn');
         let sessionAction = 'start';
+        let latestRenderedAppointments = [];
 
         // Helper functions
         function formatDate(date) {
@@ -711,6 +713,24 @@
 
         function isSameDay(date1, date2) {
             return date1.toDateString() === date2.toDateString();
+        }
+
+        function toDateYmd(date) {
+            const d = new Date(date);
+            if (Number.isNaN(d.getTime())) return '';
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         function getStatusClass(status) {
@@ -790,10 +810,15 @@
             }
         }
 
+        function getVisibleAppointments() {
+            const byDate = appointments.filter((a) => isSameDay(a.date, selectedDate));
+            return filterByTab(byDate, activeTab);
+        }
+
         // Render appointments
         function renderAppointments() {
-            const byDate = appointments.filter((a) => isSameDay(a.date, selectedDate));
-            const filtered = filterByTab(byDate, activeTab);
+            const filtered = getVisibleAppointments();
+            latestRenderedAppointments = filtered;
             
             if (filtered.length === 0) {
                 appointmentsList.innerHTML = '';
@@ -859,7 +884,7 @@
                                         Complete
                                     </button>
                                 ` : apt.status === 'completed' ? `
-                                    <button class="btn-secondary px-4 py-2 rounded-xl text-sm font-medium focus-ring">
+                                    <button class="btn-secondary px-4 py-2 rounded-xl text-sm font-medium focus-ring view-summary-btn" data-id="${apt.id}">
                                         View Summary
                                     </button>
                                 ` : ''}
@@ -874,6 +899,13 @@
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     openSessionModal(btn.dataset.id, btn.dataset.action || 'start');
+                });
+            });
+
+            document.querySelectorAll('.view-summary-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openAppointmentSummary(btn.dataset.id);
                 });
             });
         }
@@ -936,6 +968,58 @@
             
             sessionModal.classList.remove('hidden');
             document.getElementById('confirmSession').textContent = action === 'complete' ? 'Complete Session' : 'Start Session';
+        }
+
+        function openAppointmentSummary(appointmentId) {
+            const appointment = appointments.find((a) => a.id === appointmentId);
+            if (!appointment) return;
+
+            const soapLines = [
+                appointment.clinical?.subjective ? `S: ${appointment.clinical.subjective}` : '',
+                appointment.clinical?.objective ? `O: ${appointment.clinical.objective}` : '',
+                appointment.clinical?.assessment ? `A: ${appointment.clinical.assessment}` : '',
+                appointment.clinical?.plan ? `P: ${appointment.clinical.plan}` : ''
+            ].filter(Boolean);
+            const notes = soapLines.length ? soapLines.join('\n') : 'No clinical notes.';
+
+            Swal.fire({
+                titleText: `Summary: ${appointment.patientName}`,
+                html: `
+                    <div class="space-y-3 text-left">
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <p class="text-xs text-slate-500">Appointment ID</p>
+                                <p class="font-semibold text-slate-900">${escapeHtml(appointment.id)}</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <p class="text-xs text-slate-500">MRN</p>
+                                <p class="font-semibold text-slate-900">${escapeHtml(appointment.patientCode || appointment.patientId)}</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <p class="text-xs text-slate-500">Visit Time</p>
+                                <p class="font-semibold text-slate-900">${escapeHtml(appointment.time)} - ${escapeHtml(appointment.endTime)}</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <p class="text-xs text-slate-500">Diagnosis</p>
+                                <p class="font-semibold text-slate-900">${escapeHtml(appointment.diagnosis || 'N/A')}</p>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                            <p class="text-xs text-slate-500 mb-1">Clinical Notes</p>
+                            <p class="text-sm text-slate-700 whitespace-pre-line">${escapeHtml(notes)}</p>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'Close',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'hms-swal-popup',
+                    title: 'hms-swal-title',
+                    htmlContainer: 'hms-swal-html',
+                    actions: 'hms-swal-actions',
+                    confirmButton: 'hms-swal-confirm'
+                }
+            });
         }
 
         // Close modal
@@ -1029,6 +1113,39 @@
             }
         }
 
+        async function exportAppointments() {
+            try {
+                renderAppointments();
+                const params = new URLSearchParams();
+                params.set('date', toDateYmd(selectedDate));
+                params.set('tab', activeTab);
+
+                const res = await fetch(`/doctor/appointments/export?${params.toString()}`, { method: 'GET' });
+                if (!res.ok) {
+                    const payload = await res.json().catch(() => ({ message: 'Failed to export appointments' }));
+                    throw new Error(payload.message || 'Failed to export appointments');
+                }
+
+                const blob = await res.blob();
+                const disposition = res.headers.get('content-disposition') || '';
+                const filenameMatch = disposition.match(/filename="([^"]+)"/i);
+                const filename = filenameMatch ? filenameMatch[1] : 'doctor-appointments.xlsx';
+
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(blobUrl);
+
+                await Swal.fire({ icon: 'success', title: 'Exported', text: `Exported ${latestRenderedAppointments.length} appointment(s) to XLSX.` });
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Export Failed', text: error.message });
+            }
+        }
+
         // Update stats
         function updateStats() {
             const todayAppointments = appointments.filter(a => isSameDay(a.date, selectedDate));
@@ -1082,6 +1199,7 @@
                 Swal.fire({ icon: 'error', title: 'Failed', text: error.message });
             }
         });
+        if (exportAppointmentsBtn) exportAppointmentsBtn.addEventListener('click', exportAppointments);
         newAppointmentBtn.addEventListener('click', openNewAppointmentModal);
         if (emptyScheduleBtn) emptyScheduleBtn.addEventListener('click', openNewAppointmentModal);
 

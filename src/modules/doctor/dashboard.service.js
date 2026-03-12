@@ -581,9 +581,16 @@ async function getDoctorAppointments(doctorId) {
       e.status,
       e.admission_type,
       CONCAT_WS(' ', p.first_name, p.last_name) AS patient_name,
-      p.medical_record_number
+      p.medical_record_number,
+      COALESCE(d.icd10_code, 'N/A') AS diagnosis_code,
+      cn.subjective AS clinical_subjective,
+      cn.objective AS clinical_objective,
+      cn.assessment AS clinical_assessment,
+      cn.plan AS clinical_plan
      FROM encounters e
      JOIN patients p ON p.id = e.patient_id
+     LEFT JOIN clinical_diagnoses d ON d.encounter_id = e.id AND d.priority = 'Primary'
+     LEFT JOIN clinical_notes cn ON cn.encounter_id = e.id
      WHERE e.doctor_id = ? AND p.deleted_at IS NULL
      ORDER BY e.visit_date DESC
      LIMIT 300`,
@@ -704,7 +711,7 @@ async function getDoctorReportSummary(doctorId) {
         SELECT COUNT(*)
         FROM clinical_notes cn
         JOIN encounters e3 ON e3.id = cn.encounter_id
-        WHERE e3.doctor_id = ? AND cn.is_finalized = 0
+        WHERE e3.doctor_id = ? AND cn.is_finalized IS FALSE
       ), 0) AS pending_reports
      FROM encounters e
      WHERE e.doctor_id = ?`,
@@ -734,7 +741,7 @@ async function getDoctorReportSummary(doctorId) {
          CONCAT('Clinical Note - ', COALESCE(CONCAT_WS(' ', p.first_name, p.last_name), 'Patient')) AS report_name,
          'Clinical' AS category,
          cn.created_at AS created_at,
-         CASE WHEN cn.is_finalized = 1 THEN 'ready' ELSE 'pending' END AS status
+         CASE WHEN cn.is_finalized IS TRUE THEN 'ready' ELSE 'pending' END AS status
        FROM clinical_notes cn
        JOIN encounters e ON e.id = cn.encounter_id
        JOIN patients p ON p.id = e.patient_id
