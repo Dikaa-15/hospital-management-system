@@ -1,12 +1,17 @@
 const bcrypt = require('bcryptjs');
 const { getPool } = require('../../config/database');
 
+// Same bcrypt hash of "password" used to seed demo users in sql/schema.sql,
+// so AUTH_MODE=demo and AUTH_MODE=db always verify through bcrypt.compare,
+// never a plaintext string comparison.
+const DEMO_PASSWORD_HASH = '$2a$10$bhFupy71jkUV7lUiG4.QheIAckWYzC0kDIa0wke8GuHDbcawa3u2u';
+
 const demoUsers = [
   {
     id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     username: 'admin@gmail.com',
     email: 'admin@gmail.com',
-    password: 'password',
+    passwordHash: DEMO_PASSWORD_HASH,
     fullName: 'Admin HMS',
     role: 'admin'
   },
@@ -14,7 +19,7 @@ const demoUsers = [
     id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     username: 'docter@gmail.com',
     email: 'docter@gmail.com',
-    password: 'password',
+    passwordHash: DEMO_PASSWORD_HASH,
     fullName: 'Doctor HMS',
     role: 'doctor'
   },
@@ -22,7 +27,7 @@ const demoUsers = [
     id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
     username: 'patient@gmail.com',
     email: 'patient@gmail.com',
-    password: 'password',
+    passwordHash: DEMO_PASSWORD_HASH,
     fullName: 'Patient HMS',
     role: 'patient'
   },
@@ -30,7 +35,7 @@ const demoUsers = [
     id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
     username: 'pharmacist@gmail.com',
     email: 'pharmacist@gmail.com',
-    password: 'password',
+    passwordHash: DEMO_PASSWORD_HASH,
     fullName: 'Pharmacist HMS',
     role: 'pharmacist'
   }
@@ -72,13 +77,7 @@ async function verifyCredentials(identifier, password) {
   const user = await findUserByIdentifier(identifier);
   if (!user) return null;
 
-  const authMode = process.env.AUTH_MODE || 'demo';
-  
-  // Jika demo pakai plain text, jika db (mysql lokal) pakai bcrypt
-  const valid = authMode === 'demo' 
-    ? user.password === password 
-    : await bcrypt.compare(password, user.passwordHash);
-
+  const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return null;
 
   return {
