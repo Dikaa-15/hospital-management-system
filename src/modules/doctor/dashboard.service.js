@@ -582,14 +582,17 @@ async function getDoctorAppointments(doctorId) {
       e.admission_type,
       CONCAT_WS(' ', p.first_name, p.last_name) AS patient_name,
       p.medical_record_number,
-      COALESCE(d.icd10_code, 'N/A') AS diagnosis_code,
+      COALESCE((
+        SELECT d.icd10_code FROM clinical_diagnoses d
+        WHERE d.encounter_id = e.id AND d.priority = 'Primary'
+        ORDER BY d.recorded_at DESC LIMIT 1
+      ), 'N/A') AS diagnosis_code,
       cn.subjective AS clinical_subjective,
       cn.objective AS clinical_objective,
       cn.assessment AS clinical_assessment,
       cn.plan AS clinical_plan
      FROM encounters e
      JOIN patients p ON p.id = e.patient_id
-     LEFT JOIN clinical_diagnoses d ON d.encounter_id = e.id AND d.priority = 'Primary'
      LEFT JOIN clinical_notes cn ON cn.encounter_id = e.id
      WHERE e.doctor_id = ? AND p.deleted_at IS NULL
      ORDER BY e.visit_date DESC
@@ -618,7 +621,7 @@ async function createDoctorAppointment(doctorId, payload) {
 }
 
 async function updateDoctorAppointmentStatus(doctorId, encounterId, nextStatus) {
-  const allowed = ['Antre', 'Pemeriksaan', 'Farmasi', 'Selesai'];
+  const allowed = ['Antre', 'Pemeriksaan', 'Farmasi', 'Selesai', 'Dibatalkan'];
   if (!allowed.includes(nextStatus)) {
     const error = new Error('Invalid status');
     error.statusCode = 400;

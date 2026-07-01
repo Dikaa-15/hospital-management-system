@@ -1,18 +1,17 @@
 const express = require('express');
 const { requireAuth } = require('../../middlewares/auth');
 const { allowRoles } = require('../../middlewares/rbac');
-const { getSupabaseClient } = require('../../config/supabase');
+const { getPool } = require('../../config/database');
 
 const router = express.Router();
 
-// Dev utility endpoint to verify Supabase connectivity.
+// Dev utility endpoint to verify local MySQL connectivity.
 // Recommended access: admin only.
 router.get('/test-db', requireAuth, allowRoles('admin'), async (req, res) => {
   try {
-    const supabase = getSupabaseClient();
-    const { data, error } = await supabase.from('patients').select('*').limit(20);
-    if (error) return res.status(400).json({ ok: false, message: error.message });
-    return res.json({ ok: true, data });
+    const pool = getPool();
+    const [rows] = await pool.execute('SELECT * FROM patients LIMIT 20');
+    return res.json({ ok: true, data: rows });
   } catch (error) {
     return res.status(500).json({ ok: false, message: error.message });
   }

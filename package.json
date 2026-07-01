@@ -9,7 +9,6 @@
     "db:check": "node src/scripts/db-check.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.98.0",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.6.1",
     "ejs": "^3.1.10",
@@ -17,9 +16,7 @@
     "express": "^4.21.2",
     "express-mysql-session": "^3.0.3",
     "express-session": "^1.18.1",
-    "firebase": "^12.10.0",
-    "mysql2": "^3.11.5",
-    "pg": "^8.19.0"
+    "mysql2": "^3.11.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"

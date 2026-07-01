@@ -276,6 +276,7 @@ function mapAppointmentStatus(row) {
   if (row.status === 'Selesai') return 'completed';
   if (row.status === 'Pemeriksaan') return 'in-progress';
   if (row.status === 'Farmasi') return 'confirmed';
+  if (row.status === 'Dibatalkan') return 'cancelled';
   const visitTs = new Date(row.visit_date).getTime();
   return visitTs > Date.now() ? 'pending' : 'waiting';
 }
@@ -500,6 +501,53 @@ async function renderDoctorPatients(req, res) {
   }
 }
 
+function createExportWorkbook(sheetName, columns) {
+  let ExcelJS;
+  try {
+    // Lazy-load dependency so app can still run if export is not used.
+    // eslint-disable-next-line global-require
+    ExcelJS = require('exceljs');
+  } catch (error) {
+    throw new Error("Missing dependency 'exceljs'. Run: npm install exceljs");
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'HMS';
+  workbook.created = new Date();
+  const worksheet = workbook.addWorksheet(sheetName);
+  worksheet.columns = columns;
+  return { workbook, worksheet };
+}
+
+async function sendExportWorkbook(res, workbook, worksheet, filenamePrefix, extraRowStyle) {
+  const headerRow = worksheet.getRow(1);
+  headerRow.font = { bold: true, color: { argb: 'FF0F172A' } };
+  headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+  headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+  headerRow.height = 22;
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+    row.alignment = { vertical: 'top', wrapText: true };
+    if (extraRowStyle) extraRowStyle(row, rowNumber);
+  });
+  worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+  worksheet.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: worksheet.columns.length }
+  };
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const filename = `${filenamePrefix}-${y}${m}${d}.xlsx`;
+
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  await workbook.xlsx.write(res);
+  return res.end();
+}
+
 async function handleExportDoctorPatients(req, res) {
   const doctorId = req.session.user?.id;
   const q = (req.query.q || '').trim();
@@ -508,25 +556,11 @@ async function handleExportDoctorPatients(req, res) {
   const ageRange = String(req.query.age_range || '').trim();
 
   try {
-    let ExcelJS;
-    try {
-      // Lazy-load dependency so app can still run if export is not used.
-      // eslint-disable-next-line global-require
-      ExcelJS = require('exceljs');
-    } catch (error) {
-      return res.status(500).json({ ok: false, message: "Missing dependency 'exceljs'. Run: npm install exceljs" });
-    }
-
     const rows = await getDoctorPatientDirectory(doctorId);
     const mapped = mapDoctorPatients(rows);
     const filtered = filterDoctorPatients(mapped, { q, statuses, genders, ageRange });
 
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'HMS';
-    workbook.created = new Date();
-
-    const worksheet = workbook.addWorksheet('Doctor Patients');
-    worksheet.columns = [
+    const { workbook, worksheet } = createExportWorkbook('Doctor Patients', [
       { header: 'No', key: 'no', width: 6 },
       { header: 'MRN', key: 'mrn', width: 18 },
       { header: 'Patient Name', key: 'name', width: 26 },
@@ -546,7 +580,7 @@ async function handleExportDoctorPatients(req, res) {
       { header: 'Weight (kg)', key: 'weight', width: 14 },
       { header: 'Height (cm)', key: 'height', width: 14 },
       { header: 'Recent Notes', key: 'notes', width: 44 }
-    ];
+    ]);
 
     filtered.forEach((patient, idx) => {
       const systolic = patient.vitals?.bloodPressure?.systolic;
@@ -574,36 +608,11 @@ async function handleExportDoctorPatients(req, res) {
       });
     });
 
-    const headerRow = worksheet.getRow(1);
-    headerRow.font = { bold: true, color: { argb: 'FF0F172A' } };
-    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
-    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    headerRow.height = 22;
-
-    worksheet.eachRow((row, rowNumber) => {
-      row.alignment = { vertical: 'top', wrapText: true };
-      if (rowNumber > 1) {
-        row.getCell(1).alignment = { vertical: 'top', horizontal: 'center' };
-      }
+    return await sendExportWorkbook(res, workbook, worksheet, 'doctor-patients', (row) => {
+      row.getCell(1).alignment = { vertical: 'top', horizontal: 'center' };
     });
-
-    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
-    worksheet.autoFilter = {
-      from: { row: 1, column: 1 },
-      to: { row: 1, column: worksheet.columns.length }
-    };
-
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    const filename = `doctor-patients-${y}${m}${d}.xlsx`;
-
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    await workbook.xlsx.write(res);
-    return res.end();
   } catch (error) {
+    if (res.headersSent) return res.destroy(error);
     return res.status(500).json({ ok: false, message: `Failed to export patients: ${error.message}` });
   }
 }
@@ -645,24 +654,12 @@ async function handleExportDoctorAppointments(req, res) {
   const tab = String(req.query.tab || '').trim().toLowerCase();
 
   try {
-    let ExcelJS;
-    try {
-      // eslint-disable-next-line global-require
-      ExcelJS = require('exceljs');
-    } catch (error) {
-      return res.status(500).json({ ok: false, message: "Missing dependency 'exceljs'. Run: npm install exceljs" });
-    }
-
     const rows = await getDoctorAppointments(doctorId);
     const mapped = mapAppointments(rows);
     const byDate = dateYmd ? mapped.filter((a) => toLocalDateYmd(a.date) === dateYmd) : mapped;
     const filtered = filterAppointmentsByTab(byDate, tab);
 
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'HMS';
-    workbook.created = new Date();
-    const worksheet = workbook.addWorksheet('Doctor Appointments');
-    worksheet.columns = [
+    const { workbook, worksheet } = createExportWorkbook('Doctor Appointments', [
       { header: 'No', key: 'no', width: 6 },
       { header: 'Appointment ID', key: 'id', width: 22 },
       { header: 'Patient Name', key: 'patientName', width: 24 },
@@ -675,12 +672,15 @@ async function handleExportDoctorAppointments(req, res) {
       { header: 'Reason', key: 'reason', width: 22 },
       { header: 'Diagnosis', key: 'diagnosis', width: 18 },
       { header: 'Clinical Notes', key: 'clinicalNotes', width: 44 }
-    ];
+    ]);
 
     filtered.forEach((item, idx) => {
-      const clinicalNotes = [item.clinical?.subjective, item.clinical?.objective, item.clinical?.assessment, item.clinical?.plan]
-        .filter(Boolean)
-        .join(' | ');
+      const clinicalNotes = buildClinicalNotes({
+        clinical_subjective: item.clinical?.subjective,
+        clinical_objective: item.clinical?.objective,
+        clinical_assessment: item.clinical?.assessment,
+        clinical_plan: item.clinical?.plan
+      });
       worksheet.addRow({
         no: idx + 1,
         id: item.id,
@@ -693,35 +693,13 @@ async function handleExportDoctorAppointments(req, res) {
         type: item.type || '-',
         reason: item.reason || '-',
         diagnosis: item.diagnosis || '-',
-        clinicalNotes: clinicalNotes || '-'
+        clinicalNotes
       });
     });
 
-    const headerRow = worksheet.getRow(1);
-    headerRow.font = { bold: true, color: { argb: 'FF0F172A' } };
-    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
-    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    headerRow.height = 22;
-    worksheet.eachRow((row) => {
-      row.alignment = { vertical: 'top', wrapText: true };
-    });
-    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
-    worksheet.autoFilter = {
-      from: { row: 1, column: 1 },
-      to: { row: 1, column: worksheet.columns.length }
-    };
-
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    const filename = `doctor-appointments-${y}${m}${d}.xlsx`;
-
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    await workbook.xlsx.write(res);
-    return res.end();
+    return await sendExportWorkbook(res, workbook, worksheet, 'doctor-appointments');
   } catch (error) {
+    if (res.headersSent) return res.destroy(error);
     return res.status(500).json({ ok: false, message: `Failed to export appointments: ${error.message}` });
   }
 }
@@ -1046,7 +1024,8 @@ async function handleUpdateDoctorAppointmentStatus(req, res) {
     start: 'Pemeriksaan',
     complete: 'Selesai',
     confirm: 'Farmasi',
-    reset: 'Antre'
+    reset: 'Antre',
+    cancel: 'Dibatalkan'
   };
   const nextStatus = actionToStatus[action];
   if (!nextStatus) {

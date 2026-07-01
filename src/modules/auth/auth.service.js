@@ -1,5 +1,4 @@
 const bcrypt = require('bcryptjs');
-const { getSupabaseClient } = require('../../config/supabase');
 const { getPool } = require('../../config/database');
 
 const demoUsers = [
@@ -47,32 +46,7 @@ async function findUserByIdentifier(identifier) {
     );
   }
 
-  // 2. LOGIKA SUPABASE (Tambahkan ini!)
-  if (authMode === 'supabase') {
-    const supabase = getSupabaseClient();
-    const { data: user, error } = await supabase
-      .from('users')
-      .select(`
-        id, username, email, password_hash, first_name, last_name,
-        roles (role_name)
-      `)
-      .or(`username.eq.${identifier},email.eq.${identifier}`)
-      .eq('is_active', true)
-      .single();
-
-    if (error || !user) return null;
-
-    return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fullName: `${user.first_name} ${user.last_name || ''}`.trim() || user.username,
-      passwordHash: user.password_hash,
-      role: user.roles?.role_name || 'user'
-    };
-  }
-
-  // 3. LOGIKA MYSQL (Lokal)
+  // 2. LOGIKA MYSQL (Lokal)
   const pool = getPool();
   const [rows] = await pool.execute(
     `SELECT u.id, u.username, u.email, 
@@ -100,7 +74,7 @@ async function verifyCredentials(identifier, password) {
 
   const authMode = process.env.AUTH_MODE || 'demo';
   
-  // Jika demo pakai plain text, jika db/supabase pakai bcrypt
+  // Jika demo pakai plain text, jika db (mysql lokal) pakai bcrypt
   const valid = authMode === 'demo' 
     ? user.password === password 
     : await bcrypt.compare(password, user.passwordHash);

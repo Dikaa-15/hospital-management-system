@@ -876,6 +876,9 @@
                                 </span>
                                 
                                 ${apt.status === 'waiting' || apt.status === 'confirmed' ? `
+                                    <button class="btn-secondary px-3 py-2 rounded-xl text-sm font-semibold focus-ring cancel-appointment-btn" data-id="${apt.id}">
+                                        Cancel
+                                    </button>
                                     <button class="btn-primary px-4 py-2 rounded-xl text-sm font-semibold focus-ring start-session-btn" data-id="${apt.id}" data-action="start">
                                         Start Session
                                     </button>
@@ -908,6 +911,32 @@
                     openAppointmentSummary(btn.dataset.id);
                 });
             });
+
+            document.querySelectorAll('.cancel-appointment-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    cancelAppointment(btn.dataset.id);
+                });
+            });
+        }
+
+        async function cancelAppointment(appointmentId) {
+            const confirmed = await Swal.fire({
+                icon: 'warning',
+                title: 'Cancel Appointment?',
+                text: 'This appointment will be marked as cancelled.',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, cancel it',
+                cancelButtonText: 'No'
+            });
+            if (!confirmed.isConfirmed) return;
+
+            try {
+                await postForm(`/doctor/appointments/${appointmentId}/status`, { action: 'cancel' });
+                window.location.reload();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Failed', text: error.message });
+            }
         }
 
         // Render upcoming next
@@ -1115,7 +1144,7 @@
 
         async function exportAppointments() {
             try {
-                renderAppointments();
+                const visibleCount = getVisibleAppointments().length;
                 const params = new URLSearchParams();
                 params.set('date', toDateYmd(selectedDate));
                 params.set('tab', activeTab);
@@ -1140,7 +1169,7 @@
                 link.remove();
                 URL.revokeObjectURL(blobUrl);
 
-                await Swal.fire({ icon: 'success', title: 'Exported', text: `Exported ${latestRenderedAppointments.length} appointment(s) to XLSX.` });
+                await Swal.fire({ icon: 'success', title: 'Exported', text: `Exported ${visibleCount} appointment(s) to XLSX.` });
             } catch (error) {
                 Swal.fire({ icon: 'error', title: 'Export Failed', text: error.message });
             }
